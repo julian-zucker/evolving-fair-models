@@ -1,5 +1,7 @@
 package io.evvo
 
+import io.evvo.ctree.Label
+
 import scala.io.Source
 
 object data {
@@ -9,6 +11,13 @@ object data {
     * @param data The data in the dataset.
     */
   case class DataSet(name: String, data: Seq[LabeledDatapoint]) {
+    def featureValues(feature: Int): Seq[Double] = this.data.map(_.features(feature))
+
+    def randomLabel(): Label = possibleLabels(util.Random.nextInt(possibleLabels.length))
+
+    val numFeatures: Int = data.head.features.length
+    val possibleLabels: Seq[Int] = data.map(_.label).distinct
+
     override def toString: String = f"DataSet[$name]"
   }
 
@@ -28,7 +37,7 @@ object data {
       // straight regex-separated float values.
       val data = dataSource
         .getLines()
-        .map(_.split(",") .map(_.toDouble).toVector)
+        .map(_.split(",").map(_.toDouble).toVector)
         .toVector
 
       val labels = labelSource.getLines().map(_.toInt).toVector

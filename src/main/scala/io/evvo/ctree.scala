@@ -1,7 +1,7 @@
 package io.evvo
 
-import io.evvo.data.DataPoint
 import io.evvo.agent.defaults.trees.{BTLeaf, BTNode, BinaryTree}
+import io.evvo.data.{DataPoint, DataSet}
 
 /**
   * `ctree` is short for classification tree. This object holds data representations and
@@ -13,19 +13,44 @@ object ctree {
 
   /**
     * Represents a decision point.
-    * @param label The label to make a decision based on
-    * @param threshold The threshold: if the label value for this datapoint is lower than the
-    *                  threshold, go left, otherwise go right.
+    *
+    * @param featureIndex The label to make a decision based on
+    * @param threshold    The threshold: if the label value for this datapoint is lower than the
+    *                     threshold, go left, otherwise go right.
     */
-  case class Decision(label: Label, threshold: Float) {
-    /** Picks left if the datapoint's label is less than threshold, right otherwise. */
+  case class Decision(featureIndex: Int, threshold: Double)(implicit val dataset: DataSet) {
+    /** @return `left` if the datapoint's label is less than threshold, `right` otherwise. */
     def pick[T](dataPoint: DataPoint, left: T, right: T): T = {
-      if (dataPoint(label.index) < threshold) left else right
+      if (dataPoint(featureIndex) < threshold) left else right
+    }
+
+    /** @return This Decision, but using a new threshold to split */
+    def changeThreshold(): Decision = {
+      // Pick randomly between the min and max values found in the feature
+      val featureValues = dataset.featureValues(featureIndex)
+      val scale = featureValues.max - featureValues.min
+      val min = featureValues.min
+
+      this.copy(threshold = util.Random.nextDouble() * scale + min)
+    }
+
+    /** @return This Decision, but splitting on a different feature. */
+    def changeFeature(): Decision = {
+      this.copy(featureIndex = util.Random.nextInt(dataset.numFeatures))
+    }
+  }
+
+  object Decision {
+    /** @return a random decision, on any feature, with a split somewhere in the middle. */
+    def randomDecision()(implicit dataSet: DataSet): Decision = {
+      val feature = util.Random.nextInt(dataSet.numFeatures)
+      val threshold = dataSet.featureValues(feature)(util.Random.nextInt(dataSet.data.length))
+      Decision(feature, threshold)
     }
   }
 
   /** Represents a label (by index). */
-  case class Label(index: Int)
+  type Label = Int
 
   /** What label does the given classification tree predict on the given datapoint? */
   def predict(classificationTree: ClassificationTree, datapoint: DataPoint): Label = {
