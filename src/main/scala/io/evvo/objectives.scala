@@ -2,7 +2,7 @@ package io.evvo
 
 import io.evvo.ctree._
 import io.evvo.data.DataSet
-import io.evvo.island.population.{Maximize, Objective}
+import io.evvo.island.population.{Maximize, Minimize, Objective}
 
 /** Holds objectives for ctrees. */
 object objectives {
@@ -14,5 +14,23 @@ object objectives {
         dataPoint => dataPoint.label == predict(sol, dataPoint.features))
       correct.count(identity).toDouble / correct.length
     }
+  }
+
+  case class FalsePositiveRate()(implicit dataset: DataSet)
+    extends Objective[ClassificationTree]("FalsePositiveRate", Minimize) {
+    override protected def objective(sol: ClassificationTree): Double = {
+      val falsePositives = dataset.data.map(
+        dataPoint => dataPoint.label == 1 && predict(sol, dataPoint.features) == 2)
+      falsePositives.count(identity).toDouble / falsePositives.length
+    }
+  }
+
+  case class FalseNegativeRate()(implicit dataset: DataSet)
+    extends Objective[ClassificationTree]("FalseNegativeRate", Minimize) {
+    override protected def objective(sol: ClassificationTree): Double = {
+        val falseNegatives = dataset.data.map(
+          dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+        falseNegatives.count(identity).toDouble / falseNegatives.length
+      }
   }
 }

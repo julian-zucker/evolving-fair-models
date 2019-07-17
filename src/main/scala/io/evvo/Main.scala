@@ -6,7 +6,7 @@ import io.evvo.agents.LeafToNodeModifier
 import io.evvo.ctree.{Decision, Label}
 import io.evvo.data.DataSet
 import io.evvo.island._
-import io.evvo.objectives.Accuracy
+import io.evvo.objectives.{Accuracy, FalseNegativeRate, FalsePositiveRate}
 
 import scala.concurrent.duration._
 
@@ -27,7 +27,8 @@ object Main {
       .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
-      .addObjective(Accuracy())
+      .addObjective(FalseNegativeRate())
+      .addObjective(FalsePositiveRate())
 
     val islandManager = new LocalIslandManager(10, islandBuilder)
 
