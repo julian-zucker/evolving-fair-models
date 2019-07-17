@@ -1,3 +1,5 @@
+data/in/*
+data/out/*
 
 # Created by https://www.gitignore.io/api/scala,macos,maven,python,pycharm,intellij
 # Edit at https://www.gitignore.io/?templates=scala,macos,maven,python,pycharm,intellij
