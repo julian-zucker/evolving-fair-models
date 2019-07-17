@@ -1,12 +1,12 @@
 package io.evvo
 
 import io.evvo.agent.defaults.DeleteDominated
-import io.evvo.agent.defaults.trees.{ChangeLeafDataModifier, ChangeNodeDataModifier, LeafCreator, SwapSubtreeModifier}
-import io.evvo.agents.LeafToNodeModifier
+import io.evvo.agent.defaults.trees._
+import io.evvo.agents.FullTreeCreator
 import io.evvo.ctree.{Decision, Label}
 import io.evvo.data.DataSet
 import io.evvo.island._
-import io.evvo.objectives.{Accuracy, FalseNegativeRate, FalsePositiveRate}
+import io.evvo.objectives.{FalseNegativeRate, FalsePositiveRate}
 
 import scala.concurrent.duration._
 
@@ -15,24 +15,23 @@ object Main {
     implicit val dataset: DataSet = DataSet.load("german")
 
     val islandBuilder = EvvoIslandBuilder()
-      // Create leaves with each of the possible leaf values
       .addCreator(LeafCreator[Decision, Label](dataset.possibleLabels.map(() => _)))
-      // Change leaves to random labels
+      .addCreator(FullTreeCreator(depth = 5))
       .addModifier(ChangeLeafDataModifier[Decision, Label](_ => dataset.randomLabel()))
-      // Change the threshold of a node
       .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeThreshold()))
-      // Change the feature that a node runs on
       .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeFeature()))
-      // Swap a leaf out for a node
-      .addModifier(LeafToNodeModifier())
+      //      .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
       .addObjective(FalseNegativeRate())
       .addObjective(FalsePositiveRate())
 
-    val islandManager = new LocalIslandManager(10, islandBuilder)
+    val islandManager = new LocalIslandManager(4, islandBuilder)
 
     islandManager.runBlocking(StopAfter(10.second))
-    println(islandManager.currentParetoFrontier().solutions)
+
+    println(islandManager.currentParetoFrontier())
+    println(islandManager.currentParetoFrontier().solutions.take(5))
+
   }
 }
