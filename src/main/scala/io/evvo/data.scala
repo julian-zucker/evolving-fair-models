@@ -5,18 +5,16 @@ import io.evvo.ctree.Label
 import scala.io.Source
 
 object data {
-  /** Represents a dataset.
-    *
-    * @param name The name of the dataset, used for pretty-printing.
-    * @param data The data in the dataset.
-    */
-  case class DataSet(name: String, data: Seq[LabeledDatapoint]) {
-    def featureValues(feature: Int): Seq[Double] = this.data.map(_.features(feature))
+  case class DataSet(name: String, trainData: Seq[LabeledDatapoint], testData: Seq[LabeledDatapoint]) {
+    require(trainData.forall(datapoint =>
+      testData.forall(_.features.length == datapoint.features.length)))
+
+    def featureValues(feature: Int): Seq[Double] = this.trainData.map(_.features(feature))
 
     def randomLabel(): Label = possibleLabels(util.Random.nextInt(possibleLabels.length))
 
-    val numFeatures: Int = data.head.features.length
-    val possibleLabels: Seq[Int] = data.map(_.label).distinct
+    val numFeatures: Int = trainData.head.features.length
+    val possibleLabels: Seq[Int] = trainData.map(_.label).distinct
 
     override def toString: String = f"DataSet[$name]"
   }
@@ -30,21 +28,25 @@ object data {
       * @return the CSV at the specified filename.
       */
     def load(datasetName: String): DataSet = {
-      val dataSource = Source.fromFile(f"data/out/${datasetName}.data")
-      val labelSource = Source.fromFile(f"data/out/${datasetName}.labels")
+      def readDataMatrix(dir: String): Seq[LabeledDatapoint] = {
+        val dataSource = Source.fromFile(f"data/${dir}/${datasetName}.data")
+        val labelSource = Source.fromFile(f"data/${dir}/${datasetName}.labels")
 
-      // A shoddy CSV parser that doesn't handle quotes or anything other than
-      // straight regex-separated float values.
-      val data = dataSource
-        .getLines()
-        .map(_.split(",").map(_.toDouble).toVector)
-        .toVector
+        // A shoddy CSV parser that doesn't handle quotes or anything other than
+        // straight regex-separated float values.
+        val data = dataSource
+          .getLines()
+          .map(_.split(",").map(_.toDouble).toVector)
+          .toVector
 
-      val labels = labelSource.getLines().map(_.toInt).toVector
+        val labels = labelSource.getLines().map(_.toInt).toVector
 
-      dataSource.close()
-      labelSource.close()
-      DataSet(datasetName, data.zip(labels).map { case (d, l) => LabeledDatapoint(d, l) })
+        dataSource.close()
+        labelSource.close()
+        data.zip(labels).map { case (d, l) => LabeledDatapoint(d, l) }
+      }
+
+      DataSet(datasetName, readDataMatrix("train"), readDataMatrix("test"))
     }
   }
 

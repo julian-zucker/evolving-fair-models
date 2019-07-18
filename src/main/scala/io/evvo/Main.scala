@@ -6,7 +6,7 @@ import io.evvo.agents.FullTreeCreator
 import io.evvo.ctree.{Decision, Label}
 import io.evvo.data.DataSet
 import io.evvo.island._
-import io.evvo.objectives.{FalseNegativeRate, FalsePositiveRate}
+import io.evvo.objectives.{Accuracy, FalseNegativeRate, FalsePositiveRate}
 
 import scala.concurrent.duration._
 
@@ -23,15 +23,21 @@ object Main {
       //      .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
-      .addObjective(FalseNegativeRate())
-      .addObjective(FalsePositiveRate())
+//      .addObjective(FalseNegativeRate())
+//      .addObjective(FalsePositiveRate())
+      .addObjective(Accuracy())
 
     val islandManager = new LocalIslandManager(4, islandBuilder)
 
-    islandManager.runBlocking(StopAfter(10.second))
+    islandManager.runBlocking(StopAfter(180.second))
 
     println(islandManager.currentParetoFrontier())
-    println(islandManager.currentParetoFrontier().solutions.take(5))
+    val trees = islandManager.currentParetoFrontier().solutions.take(5)
+
+    val preds = trees.toVector.map(tree =>
+      dataset.testData.map(x => x.label == ctree.predict(tree.solution, x.features)))
+    val accuracies = preds.map(p => p.count(identity).toDouble / p.length)
+    println(f"Accuracy: ${accuracies}")
 
   }
 }

@@ -44,7 +44,7 @@ object ctree {
     /** @return a random decision, on any feature, with a split somewhere in the middle. */
     def randomDecision()(implicit dataSet: DataSet): Decision = {
       val feature = util.Random.nextInt(dataSet.numFeatures)
-      val threshold = dataSet.featureValues(feature)(util.Random.nextInt(dataSet.data.length))
+      val threshold = dataSet.featureValues(feature)(util.Random.nextInt(dataSet.trainData.length))
       Decision(feature, threshold)
     }
   }

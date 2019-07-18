@@ -6,8 +6,14 @@ Invoke with `./data/script/generate_datafiles.py` from the top level."""
 
 # The idea is that we can write each data-file processing script separately, and import
 # and call them here to make re-generation easy.
+import os
+
 import create_german
 
 if __name__ == '__main__':
+    os.makedirs("data/raw/", exist_ok = True)
+    os.makedirs("data/test", exist_ok = True)
+    os.makedirs("data/train", exist_ok = True)
+
     create_german.main()
 
