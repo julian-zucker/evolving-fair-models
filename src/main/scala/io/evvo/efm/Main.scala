@@ -23,21 +23,24 @@ object Main {
       .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
-//      .addObjective(FalseNegativeRate())
-//      .addObjective(FalsePositiveRate())
-      .addObjective(Accuracy())
+      .addObjective(FalseNegativeRate())
+      .addObjective(FalsePositiveRate())
+//      .addObjective(Accuracy())
       .addObjective(FalseNegativeRateRatio())
 
     val islandManager = new LocalIslandManager(5, islandBuilder)
 
-    islandManager.runBlocking(StopAfter(100.second))
+    islandManager.runBlocking(StopAfter((180).second))
 
-    println(islandManager.currentParetoFrontier().toTable())
-    val trees = islandManager.currentParetoFrontier().solutions
+    val table  = islandManager.currentParetoFrontier().toTable()
+    val trees = islandManager.currentParetoFrontier().solutions.toVector.sortBy(_.scoreOn("FalseNegativeRate"))
 
-    val preds = trees.toVector.map(tree =>
+    val preds = trees.map(tree =>
       dataset.testData.map(x => x.label == ctree.predict(tree.solution, x.features)))
     val accuracies = preds.map(p => p.count(identity).toDouble / p.length)
-    println(f"Accuracy: ${accuracies}")
+    println(table.split("\n").take(4).mkString("\n"))
+    println(table.split("\n").drop(4).zip(accuracies).map {
+      case (data, acc) => f"${data}\t${acc}"
+    }.mkString("\n"))
   }
 }

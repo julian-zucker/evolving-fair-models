@@ -24,7 +24,7 @@ def main():
         random.shuffle(data)
 
         # Ninth column is gender + marital status, 1,3,4 correspond to maleness
-        gender = [[row.pop(8) in ["1", "3", "4"]] for row in data]
+        gender = [[row[8] in ["1", "3", "4"]] for row in data]
 
         train_proportion = .8
         train_cutoff = int(len(data) * train_proportion)

@@ -49,7 +49,7 @@ object objectives {
         val notPrivFpRate = falseNegativesNotP.count(identity).toDouble / falseNegativesP.length
 
       // Regardless of who is winning, if one is higher than the other, it's a problem.
-      math.max(privFpRate / notPrivFpRate, notPrivFpRate / privFpRate)
+      math.max(1, math.max(privFpRate / notPrivFpRate, notPrivFpRate / privFpRate))
       }
   }
 
