@@ -33,4 +33,25 @@ object objectives {
         falseNegatives.count(identity).toDouble / falseNegatives.length
       }
   }
+
+
+  case class FalseNegativeRateRatio()(implicit dataset: DataSet)
+    extends Objective[ClassificationTree]("FalseNegativeRateRatio", Minimize) {
+    override protected def objective(sol: ClassificationTree): Double = {
+        val falseNegativesP = dataset.trainData
+            .filter(_.privileged)
+          .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+        val privFpRate = falseNegativesP.count(identity).toDouble / falseNegativesP.length
+
+        val falseNegativesNotP = dataset.trainData
+            .filter(!_.privileged)
+          .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+        val notPrivFpRate = falseNegativesNotP.count(identity).toDouble / falseNegativesP.length
+
+      // Regardless of who is winning, if one is higher than the other, it's a problem.
+      math.max(privFpRate / notPrivFpRate, notPrivFpRate / privFpRate)
+      }
+  }
+
+
 }

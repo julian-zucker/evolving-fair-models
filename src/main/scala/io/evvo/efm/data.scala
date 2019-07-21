@@ -31,6 +31,7 @@ object data {
       def readDataMatrix(dir: String): Seq[LabeledDatapoint] = {
         val dataSource = Source.fromFile(f"data/${dir}/${datasetName}.data")
         val labelSource = Source.fromFile(f"data/${dir}/${datasetName}.labels")
+        val privSource = Source.fromFile(f"data/${dir}/${datasetName}.priv")
 
         // A shoddy CSV parser that doesn't handle quotes or anything other than
         // straight regex-separated float values.
@@ -40,10 +41,13 @@ object data {
           .toVector
 
         val labels = labelSource.getLines().map(_.toInt).toVector
+        val priv = privSource.getLines().map(_ == "True").toVector
+        require(data.length == labels.length && data.length == priv.length)
 
         dataSource.close()
         labelSource.close()
-        data.zip(labels).map { case (d, l) => LabeledDatapoint(d, l) }
+        privSource.close()
+        data.zip(labels).zip(priv).map { case ((d, l), p) => LabeledDatapoint(d, l, p) }
       }
 
       DataSet(datasetName, readDataMatrix("train"), readDataMatrix("test"))
@@ -51,7 +55,7 @@ object data {
   }
 
   /** A labeled datapoint has a set of features and a label. */
-  case class LabeledDatapoint(features: DataPoint, label: Int)
+  case class LabeledDatapoint(features: DataPoint, label: Int, privileged: Boolean)
 
   /** A single data point is just a sequence of double-valued features. */
   type DataPoint = IndexedSeq[Double]

@@ -2,10 +2,10 @@ package io.evvo.efm
 
 import io.evvo.builtin.deletors.DeleteDominated
 import io.evvo.builtin.trees.{ChangeLeafDataModifier, ChangeNodeDataModifier, LeafCreator, SwapSubtreeModifier}
-import io.evvo.efm.agents.FullTreeCreator
+import io.evvo.efm.agents.{FullTreeCreator, LeafToNodeModifier}
 import io.evvo.efm.ctree._
 import io.evvo.efm.data.DataSet
-import io.evvo.efm.objectives.{FalseNegativeRate, FalsePositiveRate}
+import io.evvo.efm.objectives.{Accuracy, FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate}
 import io.evvo.island.{EvvoIslandBuilder, LocalIslandManager, StopAfter}
 
 import scala.concurrent.duration._
@@ -20,18 +20,19 @@ object Main {
       .addModifier(ChangeLeafDataModifier[Decision, Label](_ => dataset.randomLabel()))
       .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeThreshold()))
       .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeFeature()))
-      //      .addModifier(LeafToNodeModifier())
+      .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
-      .addObjective(FalseNegativeRate())
-      .addObjective(FalsePositiveRate())
-    //      .addObjective(Accuracy())
+//      .addObjective(FalseNegativeRate())
+//      .addObjective(FalsePositiveRate())
+      .addObjective(Accuracy())
+      .addObjective(FalseNegativeRateRatio())
 
-    val islandManager = new LocalIslandManager(4, islandBuilder)
+    val islandManager = new LocalIslandManager(5, islandBuilder)
 
-    islandManager.runBlocking(StopAfter(1.second))
+    islandManager.runBlocking(StopAfter(100.second))
 
-    println(islandManager.currentParetoFrontier())
+    println(islandManager.currentParetoFrontier().toTable())
     val trees = islandManager.currentParetoFrontier().solutions
 
     val preds = trees.toVector.map(tree =>
