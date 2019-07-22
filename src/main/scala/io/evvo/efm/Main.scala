@@ -5,8 +5,8 @@ import io.evvo.builtin.trees.{ChangeLeafDataModifier, ChangeNodeDataModifier, Le
 import io.evvo.efm.agents.{FullTreeCreator, LeafToNodeModifier}
 import io.evvo.efm.ctree._
 import io.evvo.efm.data.DataSet
-import io.evvo.efm.objectives.{Accuracy, FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate}
-import io.evvo.island.{EvvoIslandBuilder, LocalIslandManager, StopAfter}
+import io.evvo.efm.objectives.{FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate}
+import io.evvo.island.{EvvoIslandBuilder, LocalIslandManager, LogPopulation, StopAfter}
 
 import scala.concurrent.duration._
 
@@ -25,14 +25,15 @@ object Main {
       .addDeletor(DeleteDominated())
       .addObjective(FalseNegativeRate())
       .addObjective(FalsePositiveRate())
-//      .addObjective(Accuracy())
+      //      .addObjective(Accuracy())
       .addObjective(FalseNegativeRateRatio())
+      .withLoggingStrategy(LogPopulation(durationBetweenLogs = 1.minute))
 
     val islandManager = new LocalIslandManager(5, islandBuilder)
 
     islandManager.runBlocking(StopAfter((180).second))
 
-    val table  = islandManager.currentParetoFrontier().toTable()
+    val table = islandManager.currentParetoFrontier().toTable()
     val trees = islandManager.currentParetoFrontier().solutions.toVector.sortBy(_.scoreOn("FalseNegativeRate"))
 
     val preds = trees.map(tree =>
