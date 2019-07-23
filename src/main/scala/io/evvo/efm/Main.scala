@@ -1,12 +1,12 @@
 package io.evvo.efm
 
-import io.evvo.builtin.deletors.DeleteDominated
+import io.evvo.builtin.deletors.{DeleteDominated, DeleteWorstHalfByRandomObjective}
 import io.evvo.builtin.trees.{ChangeLeafDataModifier, ChangeNodeDataModifier, LeafCreator, SwapSubtreeModifier}
 import io.evvo.efm.agents.{FullTreeCreator, LeafToNodeModifier}
 import io.evvo.efm.ctree._
 import io.evvo.efm.data.DataSet
-import io.evvo.efm.objectives.{FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate}
-import io.evvo.island.{EvvoIslandBuilder, LocalIslandManager, LogPopulation, StopAfter}
+import io.evvo.efm.objectives.{DisparateImpact, FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate}
+import io.evvo.island.{EvvoIslandBuilder, LocalIslandManager, LogPopulation, RandomSampleEmigrationStrategy, StopAfter}
 
 import scala.concurrent.duration._
 
@@ -23,15 +23,18 @@ object Main {
       .addModifier(LeafToNodeModifier())
       .addModifier(SwapSubtreeModifier())
       .addDeletor(DeleteDominated())
+      .addDeletor(DeleteWorstHalfByRandomObjective(10))
       .addObjective(FalseNegativeRate())
       .addObjective(FalsePositiveRate())
       //      .addObjective(Accuracy())
       .addObjective(FalseNegativeRateRatio())
+      .addObjective(DisparateImpact())
+      .withEmigrationStrategy(RandomSampleEmigrationStrategy(32, 10.seconds))
       .withLoggingStrategy(LogPopulation(durationBetweenLogs = 1.minute))
 
     val islandManager = new LocalIslandManager(5, islandBuilder)
 
-    islandManager.runBlocking(StopAfter((180).second))
+    islandManager.runBlocking(StopAfter((300).second))
 
     val table = islandManager.currentParetoFrontier().toTable()
     val trees = islandManager.currentParetoFrontier().solutions.toVector.sortBy(_.scoreOn("FalseNegativeRate"))

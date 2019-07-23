@@ -28,30 +28,48 @@ object objectives {
   case class FalseNegativeRate()(implicit dataset: DataSet)
     extends Objective[ClassificationTree]("FalseNegativeRate", Minimize) {
     override protected def objective(sol: ClassificationTree): Double = {
-        val falseNegatives = dataset.trainData.map(
-          dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
-        falseNegatives.count(identity).toDouble / falseNegatives.length
-      }
+      val falseNegatives = dataset.trainData.map(
+        dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+      falseNegatives.count(identity).toDouble / falseNegatives.length
+    }
   }
 
 
   case class FalseNegativeRateRatio()(implicit dataset: DataSet)
     extends Objective[ClassificationTree]("FalseNegativeRateRatio", Minimize) {
     override protected def objective(sol: ClassificationTree): Double = {
-        val falseNegativesP = dataset.trainData
-            .filter(_.privileged)
-          .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
-        val privFpRate = falseNegativesP.count(identity).toDouble / falseNegativesP.length
+      val falseNegativesP = dataset.trainData
+        .filter(_.privileged)
+        .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+      val privFpRate = falseNegativesP.count(identity).toDouble / falseNegativesP.length
 
-        val falseNegativesNotP = dataset.trainData
-            .filter(!_.privileged)
-          .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
-        val notPrivFpRate = falseNegativesNotP.count(identity).toDouble / falseNegativesP.length
+      val falseNegativesNotP = dataset.trainData
+        .filter(!_.privileged)
+        .map(dataPoint => dataPoint.label == 2 && predict(sol, dataPoint.features) == 1)
+      val notPrivFpRate = falseNegativesNotP.count(identity).toDouble / falseNegativesNotP.length
 
       // Regardless of who is winning, if one is higher than the other, it's a problem.
       math.max(1, math.max(privFpRate / notPrivFpRate, notPrivFpRate / privFpRate))
-      }
+    }
   }
 
+  /** Measures the ratio at which the privileged and non-priveleged groups are given label 1. */
+  case class DisparateImpact()(implicit dataset: DataSet)
+    extends Objective[ClassificationTree]("DisparateImpact", Minimize) {
+    override protected def objective(sol: ClassificationTree): Double = {
+      val privPreds = dataset.trainData
+        .filter(_.privileged)
+        .map(_.features)
+        .map(predict(sol, _))
 
+      val nonprivPreds = dataset.trainData
+        .filter(!_.privileged)
+        .map(_.features)
+        .map(predict(sol, _))
+
+      val ppRatio = privPreds.count(_ == 1).toDouble / privPreds.length
+      val nppRatio = nonprivPreds.count(_ == 1).toDouble / nonprivPreds.length
+      math.max(1, math.max(ppRatio / nppRatio, nppRatio / ppRatio))
+    }
+  }
 }
