@@ -21,6 +21,7 @@ def main():
 
     with open("data/raw/german.data-numeric") as data_reading_fd:
         data = list(csv.reader(data_reading_fd))
+        random.seed(87333)
         random.shuffle(data)
 
         # Ninth column is gender + marital status, 1,3,4 correspond to maleness
