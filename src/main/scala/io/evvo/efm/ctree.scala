@@ -53,7 +53,7 @@ object ctree {
   }
 
   /** Represents a label (by index). */
-  type Label = Int
+  type Label = Boolean
 
   /** What label does the given classification tree predict on the given datapoint? */
   def predict(classificationTree: ClassificationTree, datapoint: DataPoint): Label = {

@@ -1,6 +1,6 @@
 package io.evvo.efm
 
-import io.evvo.efm.ctree.Label
+import io.evvo.efm.ctree.{ClassificationTree, Label}
 
 import scala.io.Source
 
@@ -14,10 +14,9 @@ object data {
 
     def featureValues(feature: Int): Seq[Double] = this.trainData.map(_.features(feature))
 
-    def randomLabel(): Label = possibleLabels(util.Random.nextInt(possibleLabels.length))
+    def randomLabel(): Label = util.Random.nextBoolean()
 
     val numFeatures: Int = trainData.head.features.length
-    val possibleLabels: Seq[Int] = trainData.map(_.label).distinct
 
     override def toString: String = f"DataSet[$name]"
   }
@@ -44,7 +43,10 @@ object data {
           .map(_.split(",").map(_.toDouble).toVector)
           .toVector
 
-        val labels = labelSource.getLines().map(_.toInt).toVector
+        // "1" is the positive label, so should be  tree
+        val labels = labelSource.getLines().map(_ == "1").toVector
+
+        // "True" is privileged
         val priv = privSource.getLines().map(_ == "True").toVector
         require(data.length == labels.length && data.length == priv.length)
 
@@ -59,7 +61,15 @@ object data {
   }
 
   /** A labeled datapoint has a set of features and a label. */
-  case class LabeledDatapoint(features: DataPoint, label: Int, privileged: Boolean)
+  case class LabeledDatapoint(features: DataPoint, positiveLabel: Label, privileged: Boolean) {
+    def predictedCorrectlyBy(c: ClassificationTree): Boolean = {
+      ctree.predict(c, this.features) == this.positiveLabel
+    }
+
+    def predictionFrom(c: ClassificationTree): Label = {
+      ctree.predict(c, this.features)
+    }
+  }
 
   /** A single data point is just a sequence of double-valued features. */
   type DataPoint = IndexedSeq[Double]

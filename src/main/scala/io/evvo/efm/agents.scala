@@ -12,7 +12,7 @@ object agents {
     override def create(): Iterable[BinaryTree[Decision, Label]] =
       Vector.fill(32)(makeOneTree(depth))
 
-    def makeOneTree(depth: Label): BinaryTree[Decision, Label] = {
+    def makeOneTree(depth: Int): BinaryTree[Decision, Label] = {
       if (depth == 0) {
         BTLeaf(dataSet.randomLabel())
       } else {
