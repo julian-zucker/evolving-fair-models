@@ -8,6 +8,7 @@ import io.evvo.efm.data.{DataPoint, DataSet}
   * utility functions for `ctree`s.
   */
 object ctree {
+
   /** A tree representing a decision tree on continuous variables with categorical output. */
   type ClassificationTree = BinaryTree[Decision, Label]
 
@@ -19,6 +20,7 @@ object ctree {
     *                     threshold, go left, otherwise go right.
     */
   case class Decision(featureIndex: Int, threshold: Double)(implicit val dataset: DataSet) {
+
     /** @return `left` if the datapoint's label is less than threshold, `right` otherwise. */
     def pick[T](dataPoint: DataPoint, left: T, right: T): T = {
       if (dataPoint(featureIndex) < threshold) left else right
@@ -41,6 +43,7 @@ object ctree {
   }
 
   object Decision {
+
     /** @return a random decision, on any feature, with a split somewhere in the middle. */
     def randomDecision()(implicit dataSet: DataSet): Decision = {
       val feature = util.Random.nextInt(dataSet.numFeatures)

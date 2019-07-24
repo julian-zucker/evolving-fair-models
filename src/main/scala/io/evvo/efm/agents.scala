@@ -8,7 +8,7 @@ import io.evvo.efm.data.DataSet
 
 object agents {
   case class FullTreeCreator(depth: Int)(implicit dataSet: DataSet)
-    extends CreatorFunction[BinaryTree[Decision, Label]]("FullTreeCreator") {
+      extends CreatorFunction[BinaryTree[Decision, Label]]("FullTreeCreator") {
     override def create(): Iterable[BinaryTree[Decision, Label]] =
       Vector.fill(32)(makeOneTree(depth))
 
@@ -22,9 +22,9 @@ object agents {
   }
 
   case class LeafToNodeModifier()(implicit dataSet: DataSet)
-    extends MutatorFunction[ClassificationTree]("LeafToNode") {
+      extends MutatorFunction[ClassificationTree]("LeafToNode") {
     override protected def mutate(sol: ClassificationTree): ClassificationTree = {
-    sol match {
+      sol match {
         case l: BTLeaf[Decision, Label] => BTNode(Decision.randomDecision(), l, l)
         case n: BTNode[Decision, Label] =>
           BTNode(Decision.randomDecision(), n, n)

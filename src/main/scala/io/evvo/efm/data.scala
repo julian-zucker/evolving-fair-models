@@ -5,7 +5,10 @@ import io.evvo.efm.ctree.Label
 import scala.io.Source
 
 object data {
-  case class DataSet(name: String, trainData: Seq[LabeledDatapoint], testData: Seq[LabeledDatapoint]) {
+  case class DataSet(
+      name: String,
+      trainData: Seq[LabeledDatapoint],
+      testData: Seq[LabeledDatapoint]) {
     require(trainData.forall(datapoint =>
       testData.forall(_.features.length == datapoint.features.length)))
 
@@ -20,6 +23,7 @@ object data {
   }
 
   object DataSet {
+
     /** Reads a Dataset.
       *
       * @param datasetName The name of the dataset. Determines which files will be read:
