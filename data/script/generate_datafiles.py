@@ -38,8 +38,11 @@ def main():
         random.shuffle(data)
 
         features = [row[:-1] for row in data]
-        labels = [1 - float(row[-1]) for row in data]  # Invert 1 and 0. 0 here is a positive outcome
-        priv = [row[3] == 1.0 for row in data]  # If race is 1.0 (Caucasian), privileged=True
+        # Remove one-hot encoding
+        features = [row[0:11] + [row[11:].index("1.0")] for row in features]
+
+        labels = [int(2 - float(row[-1])) for row in data]  # Invert 1 and 0. 0 here is a positive outcome
+        priv = [row[3] == "1.0" for row in data]  # If race is 1.0 (Caucasian), privileged=True
 
         write_data("compas", features, labels, priv)
 
