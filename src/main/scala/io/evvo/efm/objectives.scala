@@ -55,6 +55,8 @@ object objectives {
 
       ratio(privFalseNegRate, nonprivFalsePosRate)
     }
+
+    override def toString: String = "FNR Ratio"
   }
 
   /** Measures the ratio at which the privileged and non-privileged groups are given positive
@@ -67,13 +69,15 @@ object objectives {
 
     override protected def objective(sol: ClassificationTree): Double = {
       def proportionPositiveLabel(data: Seq[LabeledDatapoint]): Double = {
-        data.count(_.predictionFrom(sol) == true).toDouble / data.length
+        data.count(_.predictionFrom(sol) == Positive).toDouble / data.length
       }
       val ppRatio = proportionPositiveLabel(privilegedGroup)
       val nppRatio = proportionPositiveLabel(unprivilegedGroup)
 
       ratio(ppRatio, nppRatio)
     }
+
+    override def toString: String = "Disparate Impact"
   }
 
   /** Measures the disparity between true positive rates in the two groups. */
@@ -93,6 +97,8 @@ object objectives {
 
       ratio(privTruePos, unprivTruePos)
     }
+
+    override def toString: String = "TPR Ratio"
   }
 
   /** @return The higher of `n1/n2` and `n2/n1`. If n1 and n2 are both zero, returns 1.
