@@ -17,7 +17,7 @@ object objectives {
 
   case class FalsePositiveRate()(implicit dataset: DataSet)
       extends Objective[ClassificationTree]("FalsePositiveRate", Minimize) {
-    private val negativeLabelData = dataset.trainData.filter(!_.positiveLabel)
+    private val negativeLabelData = dataset.trainData.filter(_.label == Negative)
 
     override protected def objective(sol: ClassificationTree): Double = {
       val falsePositives = negativeLabelData.count(!_.predictedCorrectlyBy(sol))
@@ -27,7 +27,7 @@ object objectives {
 
   case class FalseNegativeRate()(implicit dataset: DataSet)
       extends Objective[ClassificationTree]("FalseNegativeRate", Minimize) {
-    private val positiveLabelData = dataset.trainData.filter(_.positiveLabel)
+    private val positiveLabelData = dataset.trainData.filter(_.label == Positive)
 
     override protected def objective(sol: ClassificationTree): Double = {
       val falseNegatives = positiveLabelData.count(!_.predictedCorrectlyBy(sol))
@@ -35,11 +35,14 @@ object objectives {
     }
   }
 
+  // ===============================================================================================
+  // Fairness Metrics
+  /** Measures the disparity between false negative rates in the two groups. */
   case class FalseNegativeRateRatio()(implicit dataset: DataSet)
       extends Objective[ClassificationTree]("FalseNegativeRateRatio", Minimize) {
-    private val (privPosLabel, notPrivPosLabel) = dataset.trainData
-      .filter(_.positiveLabel)
-      .partition(_.privileged)
+    private val (privPosLabel, unprivPosLabel) = dataset.trainData
+      .filter(_.label == Positive)
+      .partition(_.isPrivileged)
 
     private val trainSize = dataset.trainData.length
 
@@ -48,31 +51,52 @@ object objectives {
         data.count(!_.predictedCorrectlyBy(sol)).toDouble / data.length
       }
       val privFalseNegRate = proportionFalseNegative(privPosLabel)
-      val nonprivFalsePosRate = proportionFalseNegative(notPrivPosLabel)
+      val nonprivFalsePosRate = proportionFalseNegative(unprivPosLabel)
 
       ratio(privFalseNegRate, nonprivFalsePosRate)
     }
   }
 
-  /** Measures the ratio at which the privileged and non-privileged groups are given label 1. */
+  /** Measures the ratio at which the privileged and non-privileged groups are given positive
+    * labels.
+    */
   case class DisparateImpact()(implicit dataset: DataSet)
       extends Objective[ClassificationTree]("DisparateImpact", Minimize) {
-    private val (priviligedGroup, notPriviligedGroup) = dataset.trainData
-      .partition(_.privileged)
+    private val (privilegedGroup, unprivilegedGroup) =
+      dataset.trainData.partition(_.isPrivileged)
 
     override protected def objective(sol: ClassificationTree): Double = {
-      def proportionAccurate(data: Seq[LabeledDatapoint]): Double = {
-        data.count(_.predictedCorrectlyBy(sol)).toDouble / data.length
+      def proportionPositiveLabel(data: Seq[LabeledDatapoint]): Double = {
+        data.count(_.predictionFrom(sol) == true).toDouble / data.length
       }
-      val ppRatio = proportionAccurate(priviligedGroup)
-      val nppRatio = proportionAccurate(notPriviligedGroup)
+      val ppRatio = proportionPositiveLabel(privilegedGroup)
+      val nppRatio = proportionPositiveLabel(unprivilegedGroup)
 
       ratio(ppRatio, nppRatio)
     }
   }
 
-  /** @return The higher of `n1/n2` and `n2/n1`. If n1 and n2 are both zero, returns 1. If
-    *         only one of n1 and n2 is 0, returns infinity.
+  /** Measures the disparity between true positive rates in the two groups. */
+  case class TruePositiveRateRatio()(implicit dataset: DataSet)
+      extends Objective[ClassificationTree]("DisparateImpact", Minimize) {
+    private val (privilegedGroup, notPrivilegedGroup) = dataset.trainData
+      .filter(_.label == Positive)
+      .partition(_.isPrivileged)
+
+    override protected def objective(sol: ClassificationTree): Double = {
+      def proportionAccurate(data: Seq[LabeledDatapoint]): Double = {
+        data.count(_.predictedCorrectlyBy(sol)).toDouble / data.length
+      }
+      // Accurate within the positive labeled data == true positive.
+      val privTruePos = proportionAccurate(privilegedGroup)
+      val unprivTruePos = proportionAccurate(notPrivilegedGroup)
+
+      ratio(privTruePos, unprivTruePos)
+    }
+  }
+
+  /** @return The higher of `n1/n2` and `n2/n1`. If n1 and n2 are both zero, returns 1.
+    *         If only one of n1 and n2 is 0, returns infinity.
     */
   def ratio(n1: Double, n2: Double): Double = {
     // Regardless of who is winning, if one is higher than the other, it's a problem,

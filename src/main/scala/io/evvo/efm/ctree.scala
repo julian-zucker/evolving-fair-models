@@ -53,7 +53,9 @@ object ctree {
   }
 
   /** Represents a label (by index). */
-  type Label = Boolean
+  sealed trait Label
+  case object Positive extends Label
+  case object Negative extends Label
 
   /** What label does the given classification tree predict on the given datapoint? */
   def predict(classificationTree: ClassificationTree, datapoint: DataPoint): Label = {

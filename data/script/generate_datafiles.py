@@ -24,7 +24,7 @@ def main():
         random.shuffle(data)
 
         features = [row[:-1] for row in data]
-        labels = [row[-1] for row in data]
+        labels = [bool_to_outcome(row[-1] == "1") for row in data]
         # Ninth column is gender + marital status, 1,3,4 correspond to maleness
         gender = [row[8] in ["1", "3", "4"] for row in data]
 
@@ -33,15 +33,16 @@ def main():
     ###############################################################################################
     # COMPAS dataset
     with open("data/raw/compas.csv") as data_reading_fd:
-        header = data_reading_fd.readline()
+        _ = data_reading_fd.readline()  # Skip header
         data = list(csv.reader(data_reading_fd))
         random.shuffle(data)
 
         features = [row[:-1] for row in data]
-        # Remove one-hot encoding
+        # Remove one-hot encoding from crime stats, replace with index
+        # Not the prettiest data representation, but induces better trees.
         features = [row[0:11] + [row[11:].index("1.0")] for row in features]
 
-        labels = [int(2 - float(row[-1])) for row in data]  # Invert 1 and 0. 0 here is a positive outcome
+        labels = [bool_to_outcome(row[-1] == "1.0") for row in data]
         priv = [row[3] == "1.0" for row in data]  # If race is 1.0 (Caucasian), privileged=True
 
         write_data("compas", features, labels, priv)
@@ -54,11 +55,11 @@ def write_data(filename, features, labels, priv):
     train_features = features[0:train_cutoff]
     test_features = features[train_cutoff:]
 
+    # Make into 2D array for CSV reader
     labels = [[x] for x in labels]
     train_labels = labels[0:train_cutoff]
     test_labels = labels[train_cutoff:]
 
-    # Make into 2D array for CSV reader
     priv = [[x] for x in priv]
     train_privileged = priv[0:train_cutoff]
     test_privileged = priv[train_cutoff:]
@@ -80,6 +81,10 @@ def write_data(filename, features, labels, priv):
 
     with open(f"data/test/{filename}.priv", "w") as test_privileged_file:
         csv.writer(test_privileged_file, csv.QUOTE_NONE).writerows(test_privileged)
+
+
+def bool_to_outcome(b):
+    return "Positive" if b else "Negative"
 
 
 if __name__ == '__main__':
