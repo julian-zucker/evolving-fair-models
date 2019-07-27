@@ -17,7 +17,7 @@ object Main {
   def main(args: Array[String]) {
     implicit val dataset: DataSet = DataSet.load("German")
 
-    val fairness = FalseNegativeRateRatio()
+    val fairness = DisparateImpact()
 
     val islandBuilder = EvvoIslandBuilder()
 //      .addCreator(LeafCreator[Decision, Label](Seq(() => true, () => false)))
@@ -59,7 +59,6 @@ object Main {
         }
         .mkString("\n")
 
-    println(dataset)
     Using(Files.newBufferedWriter(Paths.get(f"results/data/${fairness}|${dataset.name}.csv"))) {
       _.write(results)
     }
