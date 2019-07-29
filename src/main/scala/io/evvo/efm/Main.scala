@@ -7,7 +7,7 @@ import io.evvo.builtin.trees.{ChangeLeafDataModifier, ChangeNodeDataModifier, Sw
 import io.evvo.efm.agents.{FullTreeCreator, LeafToNodeModifier}
 import io.evvo.efm.ctree._
 import io.evvo.efm.data.DataSet
-import io.evvo.efm.objectives.{DisparateImpact, FalseNegativeRate, FalseNegativeRateRatio, FalsePositiveRate, TruePositiveRateRatio}
+import io.evvo.efm.objectives.{FalseNegativeRate, FalsePositiveRate, TheilIndex}
 import io.evvo.island._
 
 import scala.concurrent.duration._
@@ -17,7 +17,7 @@ object Main {
   def main(args: Array[String]) {
     implicit val dataset: DataSet = DataSet.load("German")
 
-    val fairness = DisparateImpact()
+    val fairness = TheilIndex()
 
     val islandBuilder = EvvoIslandBuilder()
 //      .addCreator(LeafCreator[Decision, Label](Seq(() => true, () => false)))
@@ -34,7 +34,7 @@ object Main {
 //      .addObjective(TruePositiveRateRatio())
       .addObjective(fairness)
       .withEmigrationStrategy(RandomSampleEmigrationStrategy(32, 10.seconds))
-      .withLoggingStrategy(LogPopulation(durationBetweenLogs = 10.second))
+      .withLoggingStrategy(LogPopulation(durationBetweenLogs = 1.minute))
 
     val islandManager = new LocalIslandManager(5, islandBuilder)
 
@@ -59,9 +59,8 @@ object Main {
         }
         .mkString("\n")
 
-    Using(Files.newBufferedWriter(Paths.get(f"results/data/${fairness}|${dataset.name}.csv"))) {
+    Using(Files.newBufferedWriter(Paths.get(f"results/data/${fairness.name}|${dataset.name}.csv"))) {
       _.write(results)
     }
   }
 }
-

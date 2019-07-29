@@ -39,7 +39,7 @@ object objectives {
   // Fairness Metrics
   /** Measures the disparity between false negative rates in the two groups. */
   case class FalseNegativeRateRatio()(implicit dataset: DataSet)
-      extends Objective[ClassificationTree]("FalseNegativeRateRatio", Minimize) {
+      extends Objective[ClassificationTree]("FNR Ratio", Minimize) {
     private val (privPosLabel, unprivPosLabel) = dataset.trainData
       .filter(_.label == Positive)
       .partition(_.isPrivileged)
@@ -63,7 +63,7 @@ object objectives {
     * labels.
     */
   case class DisparateImpact()(implicit dataset: DataSet)
-      extends Objective[ClassificationTree]("DisparateImpact", Minimize) {
+      extends Objective[ClassificationTree]("Disparate Impact", Minimize) {
     private val (privilegedGroup, unprivilegedGroup) =
       dataset.trainData.partition(_.isPrivileged)
 
@@ -76,13 +76,11 @@ object objectives {
 
       ratio(ppRatio, nppRatio)
     }
-
-    override def toString: String = "Disparate Impact"
   }
 
   /** Measures the disparity between true positive rates in the two groups. */
   case class TruePositiveRateRatio()(implicit dataset: DataSet)
-      extends Objective[ClassificationTree]("DisparateImpact", Minimize) {
+      extends Objective[ClassificationTree]("TPR Ratio", Minimize) {
     private val (privilegedGroup, notPrivilegedGroup) = dataset.trainData
       .filter(_.label == Positive)
       .partition(_.isPrivileged)
@@ -97,8 +95,26 @@ object objectives {
 
       ratio(privTruePos, unprivTruePos)
     }
+  }
 
-    override def toString: String = "TPR Ratio"
+  case class TheilIndex()(implicit dataset: DataSet)
+      extends Objective[ClassificationTree]("Theil Index", Minimize) {
+    // implementation derived from https://github.com/IBM/AIF360/blob/d499b4ad1d3557866d6807cfb2dfbdfe4b6ba361/aif360/metrics/classification_metric.py#L650
+    override protected def objective(sol: ClassificationTree): Double = {
+      val predLabels = dataset.trainData.map(_.predictionFrom(sol)).map(labelToDouble)
+      val trueLabels = dataset.trainData.map(_.label).map(labelToDouble)
+
+      val b = predLabels.zip(trueLabels).map { case (p, t) => 1 + p - t }
+      val mean = b.sum / b.length
+
+      val log = b.map(x => math.log(math.pow(x / mean, x)) / mean)
+
+      log.sum / log.length
+    }
+
+    private def labelToDouble(label: Label): Double = if (label == Positive) { 1d } else { 0d }
+
+    override def toString: String = "TheilIndex"
   }
 
   /** @return The higher of `n1/n2` and `n2/n1`. If n1 and n2 are both zero, returns 1.
