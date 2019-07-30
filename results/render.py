@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    datafiles = os.listdir("results/data")
+    dir = "results/data/one_fairness_metric"
+    datafiles = os.listdir(dir)
 
     for datafile in datafiles:
-        with open(f"results/data/{datafile}") as f:
+        with open(f"{dir}/{datafile}") as f:
             filename_info = datafile.rstrip(".csv").split("|")
             fairness_metric = filename_info[0]
             dataset_name = filename_info[1]
@@ -19,7 +20,7 @@ def main():
             # For now, assuming there are only FN, FP, and a fairness metric
             fn = [d[0] for d in data]
             fp = [d[1] for d in data]
-            fairness = [min(5, d[2]) for d in data]
+            fairness = [min(3, d[2]) for d in data]
             test_acc = [d[3] for d in data]
             train_acc = [1 - d[0] - d[1] for d in data]
 
@@ -37,7 +38,7 @@ def main():
             ax.set_title(f'FNR, FPR, and {fairness_metric} on the {dataset_name} dataset')
             ax.set_xlabel('False Positive Rate')
             ax.set_ylabel('False Negative Rate')
-            scatter = ax.scatter(fn, fp, c=fairness, cmap="viridis")
+            scatter = ax.scatter(fn, fp, c=fairness, cmap="viridis_r")
             fig.colorbar(scatter, ax=ax, label=f"{fairness_metric}")
 
             plt.savefig(f"results/figures/{os.path.basename(datafile).rstrip('.csv')}.png")
