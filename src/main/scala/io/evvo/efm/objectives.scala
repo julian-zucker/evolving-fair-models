@@ -97,20 +97,35 @@ object objectives {
     }
   }
 
-  case class TheilIndex()(implicit dataset: DataSet)
-      extends Objective[ClassificationTree]("Theil Index", Minimize) {
+  case class BetweenGroupTheilIndex()(implicit dataset: DataSet)
+      extends Objective[ClassificationTree]("Between-Group Theil Index", Minimize, 5) {
     // implementation derived from https://github.com/IBM/AIF360/blob/d499b4ad1d3557866d6807cfb2dfbdfe4b6ba361/aif360/metrics/classification_metric.py#L650
     override protected def objective(sol: ClassificationTree): Double = {
-      val predLabels = dataset.trainData.map(_.predictionFrom(sol)).map(labelToDouble)
-      val trueLabels = dataset.trainData.map(_.label).map(labelToDouble)
+      val (priv, unpriv) = dataset.trainData.partition(_.isPrivileged)
 
-      val b = predLabels.zip(trueLabels).map { case (p, t) => 1 + p - t }
-      val mean = b.sum / b.length
-
-      val log = b.map(x => math.log(math.pow(x / mean, x)) / mean)
-
-      log.sum / log.length
+      val privBenefit = mean(benefits(sol, priv))
+      val unprivBenefit = mean(benefits(sol, unpriv))
+      // Theil index of the mean benefits to each group, weighted by group size
+      theilIndex(Seq.fill(priv.length)(privBenefit) ++ Seq.fill(unpriv.length)(unprivBenefit))
     }
+
+    private def theilIndex(benefits: Seq[Double]): Double = {
+      val meanBenefit = mean(benefits)
+      val log = benefits.map(x => math.log(math.pow(x / meanBenefit, x)) / meanBenefit)
+      mean(log)
+    }
+
+    private def benefits(tree: ClassificationTree, data: Seq[LabeledDatapoint]): Seq[Double] = {
+      val predLabels = data.map(_.predictionFrom(tree)).map(labelToDouble)
+      val trueLabels = data.map(_.label).map(labelToDouble)
+
+      // Corresponds to 1, 1, 2, 0 in the last row of Figure 2 in the paper
+      // "A Unified Approach to Quantifying Algorithmic Unfairness:
+      //    Measuring Individual and Group Unfairness via Inequality Indices", Speicher et al.
+      predLabels.zip(trueLabels).map { case (p, t) => 1d + p - t }
+    }
+
+    private def mean(s: Seq[Double]): Double = s.sum / s.length
 
     private def labelToDouble(label: Label): Double = if (label == Positive) { 1d } else { 0d }
 
