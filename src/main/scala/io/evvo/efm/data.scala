@@ -22,6 +22,9 @@ object data {
   }
 
   object DataSet {
+    def loadGerman(): DataSet = this.load("German")
+    def loadCompas(): DataSet = this.load("COMPAS")
+
 
     /** Reads a Dataset.
       *
@@ -30,7 +33,7 @@ object data {
       *                    will contain a CSV of the features.
       * @return the CSV at the specified filename.
       */
-    def load(datasetName: String): DataSet = {
+    private def load(datasetName: String): DataSet = {
       def readDataMatrix(dir: String): Seq[LabeledDatapoint] = {
         val dataSource = Source.fromFile(f"data/${dir}/${datasetName}.data")
         val labelSource = Source.fromFile(f"data/${dir}/${datasetName}.labels")

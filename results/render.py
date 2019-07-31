@@ -17,7 +17,6 @@ def main():
 
             data = [[float(x) for x in row] for row in (csv.reader(f, ))]
 
-            # For now, assuming there are only FN, FP, and a fairness metric
             fn = [d[0] for d in data]
             fp = [d[1] for d in data]
             fairness = [min(3, d[2]) for d in data]
@@ -41,7 +40,7 @@ def main():
             scatter = ax.scatter(fn, fp, c=fairness, cmap="viridis_r")
             fig.colorbar(scatter, ax=ax, label=f"{fairness_metric}")
 
-            plt.savefig(f"results/figures/{os.path.basename(datafile).rstrip('.csv')}.png")
+            plt.savefig(f"results/figures/one_metric/{os.path.basename(datafile).rstrip('.csv')}.png")
 
             # fig, ax = plt.subplots(figsize=(10, 6))
             # ax.set_title('Accuracy vs Fairness')
