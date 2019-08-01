@@ -23,16 +23,6 @@ def main():
             test_acc = [d[3] for d in data]
             train_acc = [1 - d[0] - d[1] for d in data]
 
-            summary = {
-                # The accuracy of the model that performed the best on the test set
-                "dataset": dataset_name,
-                "fairness_metric": fairness_metric,
-                "accuracy_of_best_model": min(data, key=lambda x: x[0] + x[1])[-1],
-                "best_test_accuracy": max(test_acc),
-                "best_train_accuracy": max(train_acc),
-            }
-            print(summary)
-
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.set_title(f'FNR, FPR, and {fairness_metric} on the {dataset_name} dataset')
             ax.set_xlabel('False Positive Rate')
@@ -41,14 +31,6 @@ def main():
             fig.colorbar(scatter, ax=ax, label=f"{fairness_metric}")
 
             plt.savefig(f"results/figures/one_metric/{os.path.basename(datafile).rstrip('.csv')}.png")
-
-            # fig, ax = plt.subplots(figsize=(10, 6))
-            # ax.set_title('Accuracy vs Fairness')
-            # ax.set_xlabel(f'{fairness_metric}')
-            # ax.set_ylabel('Accuracy')
-            #
-            # scatter = ax.scatter(x=fairness, y=test_acc)
-            # plt.show()
 
 
 if __name__ == '__main__':

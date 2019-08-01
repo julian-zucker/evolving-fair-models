@@ -1,4 +1,4 @@
-This directory holds data for each combination of dataset and fairness metric.
+The one_fairness_metric directory holds data for each combination of dataset and fairness metric.
 
 The CSVs have the following columns:
 * Train Set False Negative Rate,

@@ -70,6 +70,7 @@ object Main {
           .mkString("\n")
 
       val filePath = fairnesses match {
+        case Nil => "results/data/test.csv"
         case fairness :: Nil =>
           f"results/data/one_fairness_metric/${fairness.name}|${dataset.name}.csv"
         case fairness1 :: fairness2 :: Nil =>
