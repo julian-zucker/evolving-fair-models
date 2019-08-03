@@ -30,7 +30,10 @@ def main():
             scatter = ax.scatter(fn, fp, c=fairness, cmap="viridis_r")
             fig.colorbar(scatter, ax=ax, label=f"{fairness_metric}")
 
-            plt.savefig(f"results/figures/one_metric/{os.path.basename(datafile).rstrip('.csv')}.png")
+            plt.savefig(
+                f"results/figures/one_metric/{os.path.basename(datafile).rstrip('.csv')}.png",
+                bbox_inches='tight'
+            )
 
 
 if __name__ == '__main__':
