@@ -40,7 +40,8 @@ def main():
         scatter = ax.scatter(fairness1, fairness2, c=test_acc, s=7, cmap="viridis_r")
         fig.colorbar(scatter, ax=ax, label="Accuracy")
 
-        plt.savefig(f"results/figures/two_metrics/{os.path.basename(datafile).rstrip('.csv')}.png")
+        plt.savefig(f"results/figures/two_metrics/{os.path.basename(datafile).rstrip('.csv')}.png",
+                    bbox_inches='tight')
 
 
 if __name__ == '__main__':
