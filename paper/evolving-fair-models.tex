@@ -51,7 +51,7 @@ Training a fair and accurate model is a multi-objective optimization problem, wh
 We chose evolutionary computing as our optimization approach. The results of evolutionary computing without adjusting for fairness are shown to be competitive with neural networks, and we show that, for our selected data sets, little accuracy is lost for large improvements in fairness. Furthermore, we show the tradeoffs required between each pair of fairness metrics, giving insight into which are correlated or anticorrelated in practice. The full source code for this analysis is available at <elided for anonymous peer review>.
 
 \section{Fairness Metrics}
-A fairness metric for a model is a function of a model and a dataset, that produces a real-valued output. These metrics explain how biased a model was on a specific dataset by examining the errors the model makes when producing predictions for each individual, and computing subgroup-level trends to see if any sub-groups were more disadvantaged than others. If you optimize for a fairness metric that doesn’t properly reflect stakeholder values, your system will appear to be justified while being unjust. It is therefore crucial that the chosen fairness metrics capture the types of fairness that we value \citep{Binns:2017}. For simplicity, we limit our models to produce binary classifications: “positive outcome” or “negative outcome,” and our datasets to only have two groups: “privileged” and “unprivileged.” Fairness metrics, then, are measures of how the positive and negative outcomes are distributed across the privileged and unprivileged classes. We will explore four fairness metrics, selected from the many proposed by AIF360:
+A fairness metric for a model is a function of a model and a dataset, that produces a real-valued output. These metrics explain how biased a model was on a specific dataset by examining the errors the model makes when producing predictions for each individual, and computing subgroup-level trends to see if any sub-groups were more disadvantaged than others. If you optimize for a fairness metric that doesn’t properly reflect stakeholder values, your system will appear to be justified while being unjust. It is therefore crucial that the chosen fairness metrics capture the types of fairness that we value \citep{Binns:2017}. For simplicity, we limit our models to produce binary classifications: “positive outcome” or “negative outcome,” and our datasets to only have two groups: “privileged” and “unprivileged.” Fairness metrics, then, are measures of how the positive and negative outcomes are distributed across the privileged and unprivileged classes. We will explore four fairness metrics:
 
 \begin{enumerate}
 \item
@@ -59,7 +59,7 @@ A fairness metric for a model is a function of a model and a dataset, that produ
 \item 
 \textit{“False negative rate ratio,”} the ratio between the false negative rate for the privileged group and the unprivileged group. The same ratio adjustment as in 1 was applied.
 \item 
-\textit{“True positive rate ratio,”} the ratio between the true positive rate for the privileged group and the unprivileged group. The same ratio adjustment as in 1 was applied
+\textit{“True positive rate ratio,”} the ratio between the true positive rate for the privileged group and the unprivileged group. The same ratio adjustment as in 1 was applied.
 \item 
 \textit{“Between-group generalized entropy,”} the amount of inequality in the distribution of benefits between groups by the model, as measured by information-theoretic entropy. This is the only one of our chosen metrics where a score of 0 is perfect (representing equal distribution of outcomes). We choose to implement specifically the between-group Theil index, a special case of between-group generalized entropy where alpha is 1 \citep{Speicher:2018}.
 \end{enumerate}
@@ -121,28 +121,28 @@ The value of the overall Theil index must be lower than the maximum entropy for 
 \newcommand{\figures}[4]{
 	\begin{figure}[H]{
 		\centering{
-			\includegraphics[width=1\textwidth]{#1}
+			\includegraphics[width=.9\textwidth]{#1}
 		}
 		\caption{#2}
+		}
+	\end{figure}
+	\begin{figure}[H] {
 		\centering{
-			\includegraphics[width=1\textwidth]{#3}
+			\includegraphics[width=.9\textwidth]{#3}
 		}
 		\caption{#4}
-		
 	}
 	\end{figure}
 }
 
-\figures{FNR Ratio|COMPAS.png}{This is a caption below a framebox where a figure might appear.}{TPR Ratio|COMPAS.png}{This is a caption below a framebox where a figure might appear.}
+\figures{FNR Ratio|COMPAS.png}{False Negative Rate, False Positive Rate, and False Negative Rate Ratio on the COMPAS dataset. Higher false negative rates are correlated with higher false negative rate ratios, and being closer to the Pareto frontier for false positive rate and false negative rate increases false negative rate ratio.}{TPR Ratio|COMPAS.png}{Similar to above, but the true positive rate ratio is highest when the false positive rate is highest.}
 
-\fig{Disparate Impact|COMPAS.png}{This is a caption below a framebox where a figure might appear.}
-
-\fig{Between-Group Theil Index|COMPAS.png}{This is a caption below a framebox where a figure might appear.}
+\figures{Disparate Impact|COMPAS.png}{Similar to Figure 1. Note that the color gradient is similar to true positive rate ratio, as both fairness metrics are about inequality in allocation of positive labels. Disparate Impact has a much wider spread than TPR Ratio and FNR Ratio, because there are more positive label predictions than true positives or false negatives.}{Between-Group Theil Index|COMPAS.png}{Between-Group Theil Index is the only fairness metric that isn't correlated with overall false positive and negative rates.}
 
 In Figures 5 and 6 we present the Pareto frontier for two pairs of objectives. The rest of the pairs of objectives are available in Appendix A. These results were obtained after five minutes of running Evvo, using false positive rate, false negative rate, and a given pair of metrics as the objectives. Examination of these Pareto frontiers reveals which metrics conflict with each other (for example, Between-Group Theil Index and Disparate Impact), and which are obtainable at the same time (for example, TPR Ratio and Disparate Impact). Between-Group Theil Index and Disparate Impact conflict because the Theil index requires that benefits be exactly evenly apportioned between groups, regardless of the labels on the data points in the test dataset, while disparate impact allows an increase in benefits to any group that has a higher proportion of positive labels in the test dataset. TPR Ratio and Disparate Impact, on the other hand, are both measures of the appropriateness of benefit distribution, so they both tend to be satisfied at the same time. 
 
-\fig{Between-Group Theil Index|Disparate Impact|COMPAS.png}{This is a caption below a framebox where a figure might appear.}
-\fig{TPR Ratio|Disparate Impact|COMPAS.png}{This is a caption below a framebox where a figure might appear.}
+\fig{Between-Group Theil Index|Disparate Impact|COMPAS.png}{Theil Index and Disparate Impact are - anti-correlated, as evidenced by the lack of rpoints in the bottom-left corner. It is also clear from this figure that accuracy suffers as these fairness metrics increase.}
+\fig{TPR Ratio|Disparate Impact|COMPAS.png}{Disparate Impact and TPR Ratio are correlated, which makes intuitive sense as both measure inequality in distribution of positive labels. As with Figure 5, accuracy is lower when the models are more fair, but the effect is lesser here.}
 
 Finally, we will examine the maximum accuracy achieved by fair models trained in each of these cases. Table 2 shows the accuracy of our models on the COMPAS dataset, when bounded by some threshold of a fitness metric. Recall that the unfair model, trained solely for accuracy, achieved 0.684 accuracy. There are clearly diminishing returns to increasing unfairness, as most of the accuracy benefits can be obtained at a relatively low level of unfairness (1.1). In fact, a Disparate Impact score of 1.1 falls within the “four-fifths rule” established by Title VII, while having an accuracy only 2\% lower than the accuracy of the highest accuracy model we trained (Barocas 2016).
 
