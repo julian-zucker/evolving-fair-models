@@ -17,22 +17,25 @@ import scala.util.chaining._
 
 object Main {
   def main(args: Array[String]) {
-    implicit val dataset: DataSet = DataSet.loadAdultIncome()
+    implicit val dataset: DataSet = DataSet.loadCompas()
 
     // The list of fairness definitions to use.
     val fairnessesList: Seq[Seq[Objective[ClassificationTree]]] =
       Seq(
-        Seq(TruePositiveRateRatio(), FalseNegativeRateRatio()),
-        Seq(TruePositiveRateRatio(), DisparateImpact()),
-        Seq(TruePositiveRateRatio(), BetweenGroupTheilIndex()),
-        Seq(FalseNegativeRateRatio(), DisparateImpact()),
-        Seq(FalseNegativeRateRatio(), BetweenGroupTheilIndex()),
-        Seq(BetweenGroupTheilIndex(), DisparateImpact())
+        Seq(DisparateImpact())
+//        Seq(TruePositiveRateRatio(), FalseNegativeRateRatio()),
+//        Seq(TruePositiveRateRatio(), DisparateImpact()),
+//        Seq(TruePositiveRateRatio(), BetweenGroupTheilIndex()),
+//        Seq(FalseNegativeRateRatio(), DisparateImpact()),
+//        Seq(FalseNegativeRateRatio(), BetweenGroupTheilIndex()),
+//        Seq(BetweenGroupTheilIndex(), DisparateImpact())
       )
+
+    val runDuration: Duration = 60.minutes
 
     fairnessesList.foreach(fairnesses => {
       val islandBuilder = EvvoIslandBuilder()
-        .addCreator(FullTreeCreator(depth = 5))
+        .addCreator(FullTreeCreator(depth = 3))
         .addModifier(ChangeLeafDataModifier[Decision, Label](_ => dataset.randomLabel()))
         .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeThreshold()))
         .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeFeature()))
@@ -47,7 +50,7 @@ object Main {
 
       val islandManager = new LocalIslandManager(4, islandBuilder)
 
-      islandManager.runBlocking(StopAfter(5.minutes))
+      islandManager.runBlocking(StopAfter(runDuration))
 
       val table = islandManager.currentParetoFrontier().toTable()
       val trees = islandManager

@@ -81,6 +81,19 @@ def main():
 
         write_data("adult_income", result, labels, priv)
 
+    ###############################################################################################
+    # Taiwanese credit dataset
+    with open("data/raw/taiwan.csv") as data_reading_fd:
+        _ = data_reading_fd.readline()
+        data = list(csv.reader(data_reading_fd))
+        random.shuffle(data)
+
+        features = [row[:-1] for row in data]
+        labels = [bool_to_outcome(row[-1] == "1") for row in data]
+        # Ninth column is gender + marital status, 1,3,4 correspond to maleness
+        sex = [row[2] == "2" for row in data]
+        write_data("taiwan", features, labels, sex)
+
 
 def write_data(filename, features, labels, priv):
     train_proportion = .7

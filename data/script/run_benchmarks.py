@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 def main():
     np.random.seed(8799)
-    for filename in ["german", "COMPAS", "adult_income"]:
+    for filename in ["german", "COMPAS", "adult_income", "taiwan"]:
         run_benchmark(filename)
 
 
