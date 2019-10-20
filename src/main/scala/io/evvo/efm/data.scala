@@ -24,6 +24,7 @@ object data {
   object DataSet {
     def loadGerman(): DataSet = this.load("German")
     def loadCompas(): DataSet = this.load("COMPAS")
+    def loadAdultIncome(): DataSet = this.load("adult_income")
 
 
     /** Reads a Dataset.
