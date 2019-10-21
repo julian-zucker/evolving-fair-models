@@ -17,7 +17,7 @@ import scala.util.chaining._
 
 object Main {
   def main(args: Array[String]) {
-    implicit val dataset: DataSet = DataSet.loadCompas()
+    implicit val dataset: DataSet = DataSet.loadAdultIncome()
 
     // The list of fairness definitions to use.
     val fairnessesList: Seq[Seq[Objective[ClassificationTree]]] =
@@ -35,13 +35,18 @@ object Main {
 
     fairnessesList.foreach(fairnesses => {
       val islandBuilder = EvvoIslandBuilder()
-        .addCreator(FullTreeCreator(depth = 3))
+        .addCreator(FullTreeCreator(depth = 6))
         .addModifier(ChangeLeafDataModifier[Decision, Label](_ => dataset.randomLabel()))
         .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeThreshold()))
         .addModifier(ChangeNodeDataModifier[Decision, Label](_.changeFeature()))
         .addModifier(LeafToNodeModifier())
         .addModifier(SwapSubtreeModifier())
         .withEmigrationStrategy(RandomSampleEmigrationStrategy(32, 10.seconds))
+        .withLoggingStrategy(LogPopulationLoggingStrategy(1.minute))
+        .addDeletor(DeleteDominated())
+        .addDeletor(DeleteDominated())
+        .addDeletor(DeleteDominated())
+        .addDeletor(DeleteDominated())
         .addDeletor(DeleteDominated())
         .addObjective(FalseNegativeRate())
         .addObjective(FalsePositiveRate())

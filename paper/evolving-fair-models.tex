@@ -44,15 +44,15 @@
 \title{\bf Evolving Fair Models: \\
 Fair and Accurate Classification with Multi-Objective Evolutionary Computing}  
 
-\author{Julian Zucker, zucker.j@gmail.com \\
-John Rachlin, j.rachlin@northeastern.edu
+\author{Julian Zucker, julian.zucker@gmail.com, Northeastern University \\
+		John Rachlin, j.rachlin@northeastern.edu, Northeastern University
 }
 
 \begin{abstract}
 Machine learning models must be trained for both fairness and accuracy. We use multi-objective evolutionary computing to accomplish that goal, and as a tool to understand the tradeoffs between fairness and accuracy or different metrics of fairness. We explore four different fairness metrics, and show only a small cost to accuracy when greatly increasing fairness. Multi-objective evolutionary computing produces a Pareto front, which is used to identify how much accuracy must be sacrificed to achieve a specific level of fairness on a given fairness metric. We present a methodology for identifying whether two fairness metrics are correlated or anti-correlated, reducing the number of metrics which must be examined to understand the overall fairness of a model. 
 \end{abstract}
-
 \maketitle
+
 
 \section{Introduction}
 Machine learning models play a role in decisions that alter the life prospects of their subjects. At the same time, these models are often biased \citep{Angwin:2016}, and because making decisions based on biased methods is unethical and illegal \citep{Barocas:2016}, it is important that machine learning practitioners take action to reduce bias in their models \citep{Binns:2017}. Bias in algorithmic decision-making has many sources: a model can end up with bias if it is trained on historical data from humans who made biased decisions \citep{Calders:2013}, a misrepresentative subset of data that paints a biased picture \citep{Suresh:2019}, or data with more datapoints for certain subgroups of the population \citep{Torralba:2011}. 
@@ -61,7 +61,7 @@ Practitioners can identify biases in their models by applying metrics of fairnes
 
 Practitioners can mitigate biases by preprocessing the input datasets to remove bias, post-processing the model’s predictions to ensure fairness, or training models using algorithms that take fairness as well as accuracy in to account \citep{Angwin:2016}. This paper will focus on the last method, introducing a new way to train models that optimizes simultaneously for accuracy and fairness. 
 
-Training a fair and accurate model is a multi-objective optimization problem, because one must optimize simultaneously for accuracy and some definition of fairness. In this paper, we use multi-objective evolutionary computing to train fair and accurate models. First, we show that evolutionary computing, optimizing for accuracy alone, can produce models with similar accuracy to benchmarks. We then show that when optimizing for fairness as well as accuracy, the fair models are only slightly less accurate than the unfair models. Using the generated Pareto fronts, we show the tradeoffs required between each pair of fairness metrics, giving insight into which are correlated or anti-correlated in practice. The full source code for this analysis is available online \footnote{ \href{https://github.com/julian-zucker/evolving-fair-models}{https://github.com/julian-zucker/evolving-fair-models}}.
+Training a fair and accurate model is a multi-objective optimization problem, because one must optimize simultaneously for accuracy and some definition of fairness. Typical measures of the quality of machine learning models, such as specificity and AUC, do not capture the fairness in the distribution of benefits to different classes, so fairness requires a second metric, in addition to the metric being used to measure accuracy. In this paper, we use multi-objective evolutionary computing to train fair and accurate models. First, we show that evolutionary computing, optimizing for accuracy alone, can produce models with similar accuracy to benchmarks. We then show that when optimizing for fairness as well as accuracy, the fair models are only slightly less accurate than the unfair models. Using the generated Pareto fronts, we show the tradeoffs required between each pair of fairness metrics, giving insight into which are correlated or anti-correlated in practice. The full source code for this analysis is available online \footnote{ \href{https://github.com/julian-zucker/evolving-fair-models}{https://github.com/julian-zucker/evolving-fair-models}}.
 
 \section{Fairness Metrics}
 A fairness metric is a function of a model and a dataset that produces a real-valued output representing the degree of unfairness of the given model on the given dataset. For simplicity, we limit our models to produce binary classifications: “positive outcome” or “negative outcome.” We also limit our datasets to only have two groups: “privileged” and “unprivileged.” Fairness metrics, then, are measures of how fairly the positive and negative outcomes are distributed across the privileged and unprivileged classes \citep{Binns:2017}. We will explore four fairness metrics:
@@ -70,7 +70,7 @@ A fairness metric is a function of a model and a dataset that produces a real-va
 	\item \textit{Disparate impact,} the ratio between the ratio of positive to negative predictions for the privileged group and the ratio of positive to negative predictions for the unprivileged group. While the ratio is normally conceived of as being greater than one if the privileged group has a higher true positive rate, and less than one is the unprivileged group does, we chose to represent the ratio as the higher ratio divided by the lower one. With this adjustment, the minimum score is 1, and inequality favoring the priviliged or unpriviliged groups causes the score to be greater than 1. This step ensures that minimizing the adjusted score will lead to unbiased models, instead of models biased towards the unpriviliged group.
 	\item \textit{False negative rate ratio,} the ratio between the false negative rate for the privileged group and the unprivileged group. The same ratio adjustment as for disparate impact was applied.
 	\item \textit{True positive rate ratio,} the ratio between the true positive rate for the privileged group and the unprivileged group. The same ratio adjustment as for disparate impact was applied.
-	\item \textit{Between-group generalized entropy,} the amount of information required to represent the inequality in the distribution of benefits between groups by the model. This is the only one of our chosen metrics where a score of 0 is perfect (representing equal distribution of outcomes). We choose specifically the between-group Theil index, a special case of between-group generalized entropy where $\alpha$ is 1 (for a more in-depth description, see \cite{Speicher:2018}).
+	\item \textit{Between-group generalized entropy,} the amount of information required to represent the inequality in the distribution of benefits between groups by the model. This is the only one of our chosen metrics where a score of 0 is perfect (representing equal distribution of outcomes). We choose specifically the between-group Theil index, a special case of between-group generalized entropy (for a more in-depth description, see \cite{Speicher:2018}).
 \end{enumerate}
 
 \section{Evolving Fair Models}
@@ -96,7 +96,7 @@ On each dataset, we will have to define the success of a machine learning model 
 	\begin{center}
 	\begin{tabular}{| l | l | l | l | l |}
 	\hline Dataset & Our Acc & Benchmark Acc & Our DI & Benchmark DI
-	\\ \hline Adult Income  & .808 & .859 & 2.22 & 2.64
+	\\ \hline Adult Income  & .804 & .859 & 1.99 & 2.64
 	\\ \hline German Credit & .752 & .766 & 1.01 & 1.08
 	\\ \hline COMPAS        & .663 & .685 & 1.75 & 2.05
 	\\ \hline Taiwan Credit & .817 & .827 & 1.22 & 1.33

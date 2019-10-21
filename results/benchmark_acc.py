@@ -1,8 +1,8 @@
 import csv
-import sys
 import os
 
-def main(filename):
+
+def main():
     dir = "results/data/one_fairness_metric/"
     for filename in os.listdir(dir):
         if "Disparate Impact" in filename:
@@ -14,7 +14,7 @@ def main(filename):
                 disparate_impact = None
 
                 for row in reader:
-                    if float(row[2]) > 1.8:
+                    if float(row[2]) > 2:
                         continue
 
                     acc = 1 - float(row[0]) - float(row[1])
@@ -26,4 +26,4 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()
