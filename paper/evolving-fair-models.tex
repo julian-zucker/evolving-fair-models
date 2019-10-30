@@ -1,5 +1,5 @@
 \documentclass{elsarticle}
-\usepackage{palatino,epsfig,latexsym,natbib,grffile,float,hyperref,xcolor}
+\usepackage{palatino,latexsym,natbib,grffile,float,hyperref,xcolor}
 
 \hypersetup{
     colorlinks,
@@ -40,14 +40,15 @@
 }
 
 
-\begin{document}
-\title{\bf Evolving Fair Models: \\
+\title{Evolving Fair Models: \\
 Fair and Accurate Classification with Multi-Objective Evolutionary Computing}  
 
-\author{Julian Zucker, julian.zucker@gmail.com, Northeastern University \\
-		John Rachlin, j.rachlin@northeastern.edu, Northeastern University
-}
+\author{
+	Julian Zucker, julian.zucker@gmail.com, Northeastern University \\
+	John Rachlin, j.rachlin@northeastern.edu, Northeastern University 
+} 
 
+\begin{document}
 \begin{abstract}
 Machine learning models must be trained for both fairness and accuracy. We use multi-objective evolutionary computing to accomplish that goal, and as a tool to understand the tradeoffs between fairness and accuracy or different metrics of fairness. We explore four different fairness metrics, and show only a small cost to accuracy when greatly increasing fairness. Multi-objective evolutionary computing produces a Pareto front, which is used to identify how much accuracy must be sacrificed to achieve a specific level of fairness on a given fairness metric. We present a methodology for identifying whether two fairness metrics are correlated or anti-correlated, reducing the number of metrics which must be examined to understand the overall fairness of a model. 
 \end{abstract}
