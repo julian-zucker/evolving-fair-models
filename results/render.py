@@ -4,6 +4,9 @@ import os
 
 import matplotlib.pyplot as plt
 
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 def main():
     dir = "results/data/one_fairness_metric"

@@ -1,5 +1,5 @@
-\documentclass{elsarticle}
-\usepackage{palatino,latexsym,natbib,grffile,float,hyperref,xcolor}
+\documentclass[10pt]{acmart}
+\usepackage{palatino,latexsym,natbib,grffile,graphicx,float,hyperref,xcolor}
 
 \hypersetup{
     colorlinks,
@@ -23,16 +23,16 @@
 }
 
 \newcommand{\figures}[4]{
-	\begin{figure}[H]{
+	\begin{figure}[t]{
 		\centering{
-			\includegraphics[width=.8\textwidth]{#1}
+			\includegraphics[width=0.7\textwidth]{#1}
 		}
 		\caption{#2}
 		}
 	\end{figure}
-	\begin{figure}[H] {
+	\begin{figure}[t] {
 		\centering{
-			\includegraphics[width=.8\textwidth]{#3}
+			\includegraphics[width=0.7\textwidth]{#3}
 		}
 		\caption{#4}
 	}
@@ -40,53 +40,50 @@
 }
 
 
-\title{Evolving Fair Models: \\
-Fair and Accurate Classification with Multi-Objective Evolutionary Computing}  
+\title{Fair and Accurate Classification with Multi-Objective Evolutionary Computing}
 
-\author{
-	Julian Zucker, julian.zucker@gmail.com, Northeastern University \\
-	John Rachlin, j.rachlin@northeastern.edu, Northeastern University 
-} 
+\author{[Author info elided for peer review]}
 
 \begin{document}
-\begin{abstract}
-Machine learning models must be trained for both fairness and accuracy. We use multi-objective evolutionary computing to accomplish that goal, and as a tool to understand the tradeoffs between fairness and accuracy or different metrics of fairness. We explore four different fairness metrics, and show only a small cost to accuracy when greatly increasing fairness. Multi-objective evolutionary computing produces a Pareto front, which is used to identify how much accuracy must be sacrificed to achieve a specific level of fairness on a given fairness metric. We present a methodology for identifying whether two fairness metrics are correlated or anti-correlated, reducing the number of metrics which must be examined to understand the overall fairness of a model. 
-\end{abstract}
 \maketitle
+
+\begin{abstract}
+Machine learning models must be trained for both fairness and accuracy. We use multi-objective evolutionary computing to accomplish that goal, and as a tool to understand the tradeoffs between fairness and accuracy or different metrics of fairness. We explore four different fairness metrics, and show only a small cost to accuracy when greatly increasing fairness. Multi-objective evolutionary computing produces a Pareto front, which is used to identify how much accuracy must be sacrificed to achieve a specific level of fairness on a given fairness metric.
+\end{abstract}
 
 
 \section{Introduction}
-Machine learning models play a role in decisions that alter the life prospects of their subjects. At the same time, these models are often biased \citep{Angwin:2016}, and because making decisions based on biased methods is unethical and illegal \citep{Barocas:2016}, it is important that machine learning practitioners take action to reduce bias in their models \citep{Binns:2017}. Bias in algorithmic decision-making has many sources: a model can end up with bias if it is trained on historical data from humans who made biased decisions \citep{Calders:2013}, a misrepresentative subset of data that paints a biased picture \citep{Suresh:2019}, or data with more datapoints for certain subgroups of the population \citep{Torralba:2011}. 
+Machine learning models play a role in decisions that alter the life prospects of their subjects. At the same time, these models are often biased \citep{Angwin:2016}, and because making decisions based on biased methods is unethical and illegal \citep{Barocas:2016}, it is important that machine learning practitioners take action to reduce bias in their models \citep{Binns:2017}. Bias in algorithmic decision-making has many sources: a model can end up with bias if it is trained on historical data from humans who made biased decisions \citep{Calders:2013}, a misrepresentative subset of data that paints a biased picture \citep{Suresh:2019}, or data with more datapoints for certain subgroups of the population \citep{Torralba:2011}.
 
-Practitioners can identify biases in their models by applying metrics of fairness to their models and datasets. However, it can be difficult for practitioners to choose which metrics to use – the AIF360 project has over 70 \citep{Bellamy:2018}. Indeed, many of these metrics are contradictory, that is, an increase in one may necessitate a decrease in another \citep{Kleinberg:2016}. For example, a definition of fairness could measure how consistent the model’s accuracy is for different subgroups. Fairness and accuracy conflict when one subgroup is easier to make predictions for than another. If the easy subgroup is large, overall performance metrics will obscure weaknesses on smaller subgroups. In addition to fairness, practitioners require that their models be accurate, i.e., that they correctly classify examples outside of the training set at a high rate, with respect to the ground truth labels in the dataset.
+Practitioners can identify biases in their models by applying metrics of fairness to their models and datasets. However, it can be difficult for practitioners to choose which metrics to use – the AIF360 project has over 70 \citep{Bellamy:2018}. Indeed, many of these metrics are contradictory, that is, an increase in one may necessitate a decrease in another \citep{Kleinberg:2016}. For example, a definition of fairness could measure how consistent the model’s accuracy is for different subgroups. Fairness and accuracy conflict when one subgroup is easier to make predictions for than another. If the easy subgroup is large, overall performance metrics will obscure weaknesses on smaller subgroups. In addition to fairness, practitioners require that their models are accurate.
 
-Practitioners can mitigate biases by preprocessing the input datasets to remove bias, post-processing the model’s predictions to ensure fairness, or training models using algorithms that take fairness as well as accuracy in to account \citep{Angwin:2016}. This paper will focus on the last method, introducing a new way to train models that optimizes simultaneously for accuracy and fairness. 
+Practitioners can mitigate biases by preprocessing the input datasets to remove bias, post-processing the model’s predictions to ensure fairness, or training models using algorithms that take fairness as well as accuracy in to account \citep{Angwin:2016}. This paper will focus on the last method, introducing a new way to train models that optimizes simultaneously for accuracy and fairness.
 
-Training a fair and accurate model is a multi-objective optimization problem, because one must optimize simultaneously for accuracy and some definition of fairness. Typical measures of the quality of machine learning models, such as specificity and AUC, do not capture the fairness in the distribution of benefits to different classes, so fairness requires a second metric, in addition to the metric being used to measure accuracy. In this paper, we use multi-objective evolutionary computing to train fair and accurate models. First, we show that evolutionary computing, optimizing for accuracy alone, can produce models with similar accuracy to benchmarks. We then show that when optimizing for fairness as well as accuracy, the fair models are only slightly less accurate than the unfair models. Using the generated Pareto fronts, we show the tradeoffs required between each pair of fairness metrics, giving insight into which are correlated or anti-correlated in practice. The full source code for this analysis is available online \footnote{ \href{https://github.com/julian-zucker/evolving-fair-models}{https://github.com/julian-zucker/evolving-fair-models}}.
+Training a fair and accurate model is a multi-objective optimization problem, because one must optimize simultaneously for accuracy and some definition of fairness. Typical measures of the quality of machine learning models, such as specificity and AUC, do not capture the fairness in the distribution of benefits to different classes, so fairness requires a second metric, in addition to the metric being used to measure accuracy. In this paper, we use multi-objective evolutionary computing to train fair and accurate models. First, we show that evolutionary computing, optimizing for accuracy alone, can produce models with similar accuracy to benchmarks. We then show that when optimizing for fairness as well as accuracy, the fair models are only slightly less accurate than the unfair models. The full source code for this analysis is available online \footnote{[Link elided for peer review]}.
 
 \section{Fairness Metrics}
 A fairness metric is a function of a model and a dataset that produces a real-valued output representing the degree of unfairness of the given model on the given dataset. For simplicity, we limit our models to produce binary classifications: “positive outcome” or “negative outcome.” We also limit our datasets to only have two groups: “privileged” and “unprivileged.” Fairness metrics, then, are measures of how fairly the positive and negative outcomes are distributed across the privileged and unprivileged classes \citep{Binns:2017}. We will explore four fairness metrics:
 
 \begin{enumerate}
-	\item \textit{Disparate impact,} the ratio between the ratio of positive to negative predictions for the privileged group and the ratio of positive to negative predictions for the unprivileged group. While the ratio is normally conceived of as being greater than one if the privileged group has a higher true positive rate, and less than one is the unprivileged group does, we chose to represent the ratio as the higher ratio divided by the lower one. With this adjustment, the minimum score is 1, and inequality favoring the priviliged or unpriviliged groups causes the score to be greater than 1. This step ensures that minimizing the adjusted score will lead to unbiased models, instead of models biased towards the unpriviliged group.
+	\item \textit{Disparate impact,} the ratio between the ratio of positive to negative predictions for the privileged group and the ratio of positive to negative predictions for the unprivileged group. Traditionally, disparate impact is greater than one if the privileged group has a higher true positive rate, and less than one is the unprivileged group does. We chose to represent the ratio as the higher ratio divided by the lower one, so that the minimum score is 1, and inequality favoring the priviliged or unpriviliged groups causes the score to be greater than 1. This step ensures that minimizing the adjusted score will lead to unbiased models, instead of models biased towards the unpriviliged group.
 	\item \textit{False negative rate ratio,} the ratio between the false negative rate for the privileged group and the unprivileged group. The same ratio adjustment as for disparate impact was applied.
 	\item \textit{True positive rate ratio,} the ratio between the true positive rate for the privileged group and the unprivileged group. The same ratio adjustment as for disparate impact was applied.
 	\item \textit{Between-group generalized entropy,} the amount of information required to represent the inequality in the distribution of benefits between groups by the model. This is the only one of our chosen metrics where a score of 0 is perfect (representing equal distribution of outcomes). We choose specifically the between-group Theil index, a special case of between-group generalized entropy (for a more in-depth description, see \cite{Speicher:2018}).
 \end{enumerate}
 
 \section{Evolving Fair Models}
-Training a machine learning model that is both accurate and fair is a multi-objective optimization problem. Because there are multiple objectives, some of which are not differentiable, standard methods of fitting models such as gradient descent and convex optimization---even the multi-objective version of gradient descent proposed by \citep{Desideri:2012}---which rely on a differentiable loss function will not work \citep{Zerbinati:2011}. Furthermore, we are not trying to find the optimal point in Euclidean space by some function, we are trying to find an optimal model. We must find the optimal model in model-space, not the optimal point in Euclidean space. Evolutionary optimization approaches have proven effective under these constraints, as in \citep{Zhao:2007} where decision trees were evolved with false negative and false positive rate as objectives. Evolutionary computing can also support optimizing models for multiple fairness metrics at once, an advantage over parameterized fairness/accuracy calculations like the ones performed in \citep{Friedler:2019}. 
+Training a machine learning model that is both accurate and fair is a multi-objective optimization problem. Because there are multiple objectives, some of which are not differentiable, standard methods of fitting models such as gradient descent and convex optimization---even the multi-objective version of gradient descent proposed by \citep{Desideri:2012}---which rely on a differentiable loss function will not work \citep{Zerbinati:2011}. Furthermore, we are not trying to find the optimal point in Euclidean space by some function, we are trying to find an optimal model. We must find the optimal model in model-space, not the optimal point in Euclidean space. Evolutionary optimization approaches have proven effective under these constraints, as in \citep{Zhao:2007} where decision trees were evolved with false negative and false positive rate as objectives. Evolutionary computing can also support optimizing models for multiple fairness metrics at once, an advantage over parameterized fairness/accuracy calculations like the ones performed in \citep{Friedler:2019}.
 
-We used the open-source Evvo framework\footnote{\href{https://github.com/evvo-labs/evvo}{https://github.com/evvo-labs/evvo}} for evolutionary computing to train our models. The core of evolutionary computation implemented by Evvo is:
+We used the open-source Evvo framework\footnote{\href{https://github.com/evvo-labs/evvo}{https://github.com/evvo-labs/evvo}} for evolutionary computing to train our models. The model of evolutionary computation implemented by Evvo is asynchronous, working as follows:
 \begin{enumerate}
 	\item Generate a starting population of random solutions.
 	\item Starts threads which asynchronously copy and modify solutions in the population. The modified solutions are added to the population.
 	\item Start theads which asynchronously select random samples from the population and delete the solutions that are bad. We chose to delete dominated solutions from the sample. Dominated solutions are those which score worse than another solution on every objective, for example, a model that is less accurate and less fair than another model would be dominated.
 	\item When some amount of time has elapsed, stop the system.
 \end{enumerate}
-To evolve a decision tree with Evvo, one needs an initial population, modification operators, and criteria for when to stop. Our initial population consists of randomly generated decision trees, trained by splitting greedily to minimize entropy. We implemented the modification operators introduced in \citep{Kretowski:2005}. These operators change the feature that a node examines, change the threshold of a node, swap the class that a given leaf predicts, change a leaf to a node, or change a node to a leaf. Following \citep{Papagelis:2000}, we employ a “crossover” operator, which takes two decision trees and swaps a random subtree of one with a random subtree of another. After running for a specified amount of time, the system stops and returns the Pareto front. In contrast with running mutation operators a fixed number of times, time-based criteria ensure that increasing the computational complexity of our mutation operators is penalized, as those operators will take longer to run \citep{Eiben:2015}.
+To evolve a decision tree with Evvo, one needs an initial population, modification operators, and criteria for when to stop. Our initial population consists of randomly generated depth-five decision trees, trained by splitting greedily to minimize entropy. We implemented the modification operators introduced in \citep{Kretowski:2005}. These operators change the feature that a node examines, change the threshold of a node, swap the class that a given leaf predicts, change a leaf to a node, or change a node to a leaf. Following \citep{Papagelis:2000}, we employ a “crossover” operator, which takes two decision trees and swaps a random subtree of one with a random subtree of another. After running for a specified amount of time, the system stops and returns the Pareto front.
 
-Machine learning practitioners often evaluate models on accuracy alone, as increasing the accuracy of a model can directly produce value for their employer \citep{Packer:2018}. If we can show that large increases of fairness are obtainable without sacrificing much accuracy, perhaps we can increase the adoption of fair machine learning models. 
+Machine learning practitioners often evaluate models on accuracy alone, as increasing the accuracy of a model can directly produce value for their employer \citep{Packer:2018}. If we can show that large increases of fairness are obtainable without sacrificing much accuracy, perhaps we can increase the adoption of fair machine learning models.
 
 We evaluated our model training method on two datasets: the German credit dataset \citep{Dua:2019} and the AIF360 pre-processed COMPAS dataset \citep{Larson:2016}. Both datasets contain numeric attributes and a binary prediction task. For the German dataset, the task is to predict whether the person described by the data point will default on a loan or not. For the COMPAS dataset, the task is to predict whether a criminal will recidivate. For both of these tasks, there are multiple privileged classes with an intersectional effect. We have chosen to measure bias only across gender in the German dataset and race in the COMPAS dataset, for economy of presentation and the simplicity of the resulting fairness metrics. Gender and race, respectively, are not included as inputs to the models being trained.
 
@@ -96,7 +93,7 @@ On each dataset, we will have to define the success of a machine learning model 
 \begin{table}
 	\begin{center}
 	\begin{tabular}{| l | l | l | l | l |}
-	\hline Dataset & Our Acc & Benchmark Acc & Our DI & Benchmark DI
+	\hline Dataset & Our Acc. & Benchmark Acc. & Our DI & Benchmark DI
 	\\ \hline Adult Income  & .804 & .859 & 1.99 & 2.64
 	\\ \hline German Credit & .752 & .766 & 1.01 & 1.08
 	\\ \hline COMPAS        & .663 & .685 & 1.75 & 2.05
@@ -104,26 +101,23 @@ On each dataset, we will have to define the success of a machine learning model 
 	\\ \hline
 	\end{tabular}
 	\end{center}
-	\caption{Accuracy and disparate impact obtained by evolving models using false positive rate and false negative rate as objectives, compared to a SciKitLearn DecisionTreeClassifier trained with a RandomizedSearchCV. Our reported accuracy is the accuracy on the test set of the decision tree with the highest accuracy on the training set. While our accuracies are lower than the SciKitLearn model, our fairness is higher.}
+    \caption{Accuracy and disparate impact obtained by evolving models using false positive rate and false negative rate as objectives, compared to a SciKitLearn DecisionTreeClassifier trained with a RandomizedSearchCV. Our reported accuracy is the accuracy on the test set of the decision tree with the highest accuracy on the training set. While our accuracies are lower than the SciKitLearn model, our fairness (as measured by disparate impact) is higher.}
 \end{table}
 
-\section{Results}	
+\section{Results}
 Traditional methods of training models only produce one model, while evolutionary computing produces a Pareto front.  Instead of requiring manual human exploration of the potential models, based on an incomplete understanding of the fairness/accuracy tradeoff space, the human in charge of developing the model can see the Pareto front of many possible solutions. When examining the Pareto front, it is usually clear how much an increase in accuracy or fairness would cost in the other metric. The entire search space is presented to the practitioner choosing which model to deploy, allowing for decisions to be made based on more than just a few hand-picked data points.
 
-On the COMPAS dataset, it is clear that improving the fairness of models decreases the model’s accuracy. The points that are in the bottom-left-most parts of each figure, corresponding to the highest accuracy, are the ones with the most unfairness. However, models with near-perfect fairness only slightly underperform the best models. The results were qualitatively similar for the German dataset, where fair models only slightly lagged unfair models in accuracy. 
+On the COMPAS dataset, it is clear that improving the fairness of models decreases the model’s accuracy. The points that are in the bottom-left-most parts of Figures 1 and 2, corresponding to the highest accuracy, are the ones with the most unfairness. However, models with near-perfect fairness only slightly underperform the best models. The results were qualitatively similar for the German dataset, where fair models only slightly lagged unfair models in accuracy.
 
-Figures 1 and 2 look quite similar, because disparate impact and true positive rate ratio are both measures of inequality in the allocation of the positive label. For both measures, an increase in the overall amount of positive predictions allows for a higher value of inequality. This effect is shown by the darker areas in the bottom right of the graph, where there are more positive predictions (and thus a higher false positive rate). Figure 3 shows the opposite effect, because the false negative rate ratio is bounded by the number of total negative predictions.
+Disparate impact and true positive rate ratio are both measures of inequality in the allocation of the positive label. For both measures, an increase in the overall amount of positive predictions allows for a higher value of inequality. Figure 3 shows the opposite effect, because the false negative rate ratio is bounded by the number of total negative predictions.
 
 The value of the overall Theil index must be lower than the maximum entropy for three classes ($\log_2(3) \approx 1.585$) as it is equivalent to the entropy of a series of observations with only three values. And, as noted in \citep{Speicher:2018}, the between-group entropy is a small amount (often less than one percent) of the overall entropy when you have few groups, so the small values in Figure 4 are to be expected.
 
-\figures{Disparate Impact|COMPAS.png}{False Negative Rate, False Positive Rate, and Disparate Impact on the COMPAS dataset. Higher false positive rates are correlated with higher disparate impact scores, and higher-accuracy models have worse disparate impact scores. Disparate Impact has a much wider spread than TPR Ratio and FNR Ratio, because there are more positive label predictions than true positives or false negatives.}{TPR Ratio|COMPAS.png}{False Negative Rate, False Positive Rate, and True Positive Rate Ratio on the COMPAS dataset. As above, the the true positive rate ratio is highest when the false positive rate is highest.}
+\figures{Disparate Impact|COMPAS.png}{False Negative Rate, False Positive Rate, and Disparate Impact on the COMPAS dataset. Higher false positive rates are correlated with higher disparate impact scores, and higher-accuracy models have worse disparate impact scores.}{TPR Ratio|COMPAS.png}{False Negative Rate, False Positive Rate, and True Positive Rate Ratio on the COMPAS dataset. As above, the the true positive rate ratio is highest when the false positive rate is highest.}
 
 \figures{FNR Ratio|COMPAS.png}{False Negative Rate, False Positive Rate, and False Negative Rate Ratio on the COMPAS dataset. This figure shows the opposite trend as Figures 1 and 2, as false negative rate ratio is naturally correlated with false negative rate and not false positive rate.}{Between-Group Theil Index|COMPAS.png}{False Negative Rate, False Positive Rate, and Between-Group Theil Index on the COMPAS dataset. Between-Group Theil Index is the only fairness metric that isn't correlated with overall false positive and negative rates.}
 
-In Figures 5 and 6 we present the Pareto front for two pairs of objectives. Visualizations of the tradeoffs for the other four pairs are available in the Appendix. These results were obtained using false positive rate, false negative rate, and a given pair of metrics as the training objectives. Examination of these Pareto fronts reveals which metrics conflict with each other (for example, Between-Group Theil Index and Disparate Impact), and which are obtainable at the same time (for example, TPR Ratio and Disparate Impact). Between-Group Theil Index and Disparate Impact conflict because the Theil index requires that benefits be exactly evenly apportioned between groups, regardless of the labels on the data points in the test dataset, while the disparate impact measure requires the proportion of positive predictions for each group to scale with the proportion of positive labels in the test dataset for that group. True Positive Rate Ratio and Disparate Impact, on the other hand, are both measures of fairness of the distribution of positive labels, so they both can be satisfied at the same time. 
-
-\figures{Between-Group Theil Index|Disparate Impact|COMPAS.png}{Theil Index and Disparate Impact are anti-correlated, as evidenced by the lack of points in the bottom-left corner. It is also clear from this figure that accuracy suffers as these fairness metrics increase.}{TPR Ratio|Disparate Impact|COMPAS.png}{Disparate Impact and TPR Ratio are correlated, which makes intuitive sense as both measure inequality in distribution of positive labels. As with Figure 5, accuracy is lower when the models are more fair, but the effect is lesser here.}
-
+Finally, we will examine the maximum accuracy achieved by fair models trained in each of these cases. Table 2 shows the accuracy of our models on the COMPAS dataset, when bounded by some threshold of a fitness metric. The unfair model, trained solely for accuracy, achieved an accuracy of 0.684. There are clearly diminishing returns to decreasing fairness, as most of the accuracy benefits can be obtained at a relatively high level of fairness (namely, 1.1). In fact, a disparate impact of 1.1 falls within the “four-fifths rule” established by Title VII \citep{Barocas:2016}, while having an accuracy only 2\% lower than the highest accuracy of any model we trained. So, ensuring the legality of a model may require only a 2\% decrease in accuracy.
 
 \renewcommand{\arraystretch}{1.5}
 \begin{table}
@@ -145,21 +139,15 @@ In Figures 5 and 6 we present the Pareto front for two pairs of objectives. Visu
 \caption{Peak accuracy for models that achieved different levels of each fairness metric on the COMPAS dataset. Only models with fairness less than or equal to the fairness threshold are included in the accuracy calculation.}
 \end{table}
 
-Finally, we will examine the maximum accuracy achieved by fair models trained in each of these cases. Table 2 shows the accuracy of our models on the COMPAS dataset, when bounded by some threshold of a fitness metric. Recall that the unfair model, trained solely for accuracy, achieved an accuracy of 0.684. There are clearly diminishing returns to decreasing fairness, as most of the accuracy benefits can be obtained at a relatively high level of fairness (namely, 1.1). In fact, a disparate impact of 1.1 falls within the “four-fifths rule” established by Title VII \citep{Barocas:2016}, while having an accuracy only 2\% lower than the highest accuracy of any model we trained. So, ensuring the legality of making decisions based on machine learning models may require only a 2\% decrease in accuracy.
 
 \section{Further Work}
 As mentioned when introducing the datasets, each dataset has multiple protected subgroups, and we debiased against only one. Adding objectives for each protected feature may present a different picture. Another straightforward extension would be the application of this framework to different fairness metrics. In addition, the evolution of different types of models could be explored, to see if types other than decision trees may produce fairer, more accurate models. The AIF360 project provides pre- and post-processing steps for models, to reduce their bias. Evolution of models combine with pre- and post-processing might provide an additional way to reduce the cost of fairness.
 
 \section{Conclusion}
 We have shown that fair models can be trained with only a minor loss of accuracy. This result holds across multiple definitions of fairness and multiple datasets. In the face of ethical and legal concerns, this minimal tradeoff may motivate even purely profit-seeking companies to train and deploy fair models. Furthermore, we have used evolutionary computing not only as an optimization technique, but also to produce Pareto front for the exploration of different tradeoffs in fairness. We have explored the three-dimensional Pareto fronts between false negative, false positive, and different fairness metrics, as well as between pairs of fairness metrics, allowing an exploration of the entire accuracy/fairness tradeoff space.
- 
-\bibliographystyle{apalike}
+
+
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{evolving-fair-models.bib}
-
-
-\section{Appendix}
-\figures{FNR Ratio|Between-Group Theil Index|COMPAS.png}{ Between-Group Theil Index and False Negative Rate Ratio are can be optimized jointly, with little cost to predictive accuracy.}{FNR Ratio|Disparate Impact|COMPAS.png}{Decreasing Disparate Impact has a large influence on accuracy, while False Negative Rate Ratio has less of an affect.}
-
-\figures{TPR Ratio|Between-Group Theil Index|COMPAS.png}{As with False Negative Rate Ratio in Figure 7, accuracy is relatively high, and models can be fair by both metrics.}{TPR Ratio|FNR Ratio|COMPAS.png}{Here, the cost of True Positive Rate Ratio in accuracy is very high, although some points quite near (1,1) represent models that are incredibly fair, and still relatively accurate.}
 
 \end{document}

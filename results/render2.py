@@ -3,7 +3,9 @@ import csv
 import os
 
 import matplotlib.pyplot as plt
-
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 def main():
     dir = "results/data/two_fairness_metrics"
